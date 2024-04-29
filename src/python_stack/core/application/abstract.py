@@ -2,16 +2,23 @@
 Package for creating an Application.
 """
 
-from abc import ABC
-
 import fastapi
 from starlette.types import Receive, Scope, Send
 
+from python_stack.core.utils.monitor.abstract import (
+    AbstractHealthMonitored,
+    AbstractReadinessMonitored,
+)
 
-class AbstractApplication(ABC):
+
+class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
     """
     Abstract class for creating an Application.
     """
+
+    # Server Constants
+    PORT: int = 8080
+    HOST: str = "0.0.0.0"
 
     # FastAPI Constants
     FASTAPI_EVENT_STARTUP = "startup"
@@ -63,8 +70,16 @@ class AbstractApplication(ABC):
             event_type=self.FASTAPI_EVENT_SHUTDOWN, func=self._on_shutdown
         )
 
-    def __init__(self, fastapi_app: fastapi.FastAPI | None = None):
-        self.__init_fastapi__(fastapi_app)
+    def __init__(self, fastapi_app: fastapi.FastAPI | None = None) -> None:
+        """
+        Initializes the Application
+        """
+        # Initialize the AbstractMonitored classes
+        AbstractHealthMonitored.__init__(self=self)
+        AbstractReadinessMonitored.__init__(self=self)
+
+        # Initialize the FastAPI application
+        self.__init_fastapi__(fastapi_app=fastapi_app)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
