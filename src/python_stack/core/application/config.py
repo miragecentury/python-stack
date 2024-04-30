@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 
+from .enums import Environment
+
 
 class AbstractApplicationConfig(BaseModel):
-    environment: str
-    dev_mode: bool
+    """
+    Represents the configuration for the application.
+    """
+
+    environment: Environment
