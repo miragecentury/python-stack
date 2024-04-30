@@ -2,6 +2,8 @@
 Package for creating an Application.
 """
 
+from logging.config import IDENTIFIER
+
 import fastapi
 import inject
 import uvicorn
@@ -11,12 +13,26 @@ from python_stack.core.utils.monitored.abstract import (
     AbstractHealthMonitored,
     AbstractReadinessMonitored,
 )
+from python_stack.core.utils.monitored.enums import (
+    HealthStatusEnum,
+    ReadinessStatusEnum,
+)
+from python_stack.core.utils.monitored.service import (
+    MonitoredService,
+    MonitorResourceTypeEnum,
+)
 
 
 class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
     """
     Abstract class for creating an Application.
     """
+
+    # Monitored Constants
+    MONITORED_IDENTIFIER: str = "application"
+    MONITORED_RESOURCE_TYPE: MonitorResourceTypeEnum = (
+        MonitorResourceTypeEnum.APPLICATION
+    )
 
     # Server Constants
     DEFAULT_PORT: int = 8080
@@ -89,7 +105,13 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
         """
         Initializes the dependency injection container.
         """
-        return inject.configure(lambda binder: binder.bind(AbstractApplication, self))
+
+        def configure(binder: inject.Binder) -> None:
+            binder.bind(cls=AbstractApplication, instance=self)
+            binder.bind(cls=fastapi.FastAPI, instance=self.fastapi_app)
+            binder.bind(cls=MonitoredService, instance=self._monitored_service)
+
+        return inject.configure(config=configure)
 
     def __init__(
         self,
@@ -108,12 +130,25 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
         # Initialize the FastAPI application
         self.__init_fastapi__(fastapi_app=fastapi_app)
 
+        # Initialize the MonitoredService
+        self._monitored_service = MonitoredService()
+
         # Initialize the dependency injection container
-        self.injector = self.__init_inject__()
+        self._injector = self.__init_inject__()
 
         # Initialize the AbstractMonitored classes
-        AbstractHealthMonitored.__init__(self=self)
-        AbstractReadinessMonitored.__init__(self=self)
+        AbstractHealthMonitored.__init__(
+            self=self,
+            resource_type=self.MONITORED_RESOURCE_TYPE,
+            identifier=self.MONITORED_IDENTIFIER,
+            initial_health_status=HealthStatusEnum.HEALTHY,
+        )
+        AbstractReadinessMonitored.__init__(
+            self=self,
+            resource_type=self.MONITORED_RESOURCE_TYPE,
+            identifier=self.MONITORED_IDENTIFIER,
+            initial_readiness_status=ReadinessStatusEnum.NOT_READY,
+        )
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
