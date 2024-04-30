@@ -23,7 +23,7 @@
     "python.analysis.autoSearchPaths": true,
     "python.analysis.extraPaths": [
         "./src/",
-        "./test/"
+        "./tests/"
     ],
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
