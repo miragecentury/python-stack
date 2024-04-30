@@ -12,6 +12,9 @@ packages = [
 python = "^3.11"
 fastapi = "^0.110.2"
 pyyaml = {version="^6.0.1", optional=true}
+reactivex = "^4.0.4"
+uvicorn = "^0.29.0"
+inject = "^5.2.1"
 
 [tool.poetry.group.test.dependencies]
 
@@ -31,10 +34,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = "tests -n auto --cov=python_stack --cov-report=term-missing"
-
-[tool.pytest.ini_options]
-addopts = "tests -n auto --cov=python_stack --cov-report=term-missing"
+addopts = "tests -n auto --cov=python_stack --cov-report=term-missing --color=yes"
 
 [tool.black]
 line-length = 88
