@@ -9,6 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "module": "python_stack.example",
+            "justMyCode": false
         }
     ]
 }
