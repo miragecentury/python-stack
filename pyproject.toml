@@ -32,3 +32,10 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 addopts = "tests -n auto --cov=python_stack --cov-report=term-missing"
+
+[tool.pytest.ini_options]
+addopts = "tests -n auto --cov=python_stack --cov-report=term-missing"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']

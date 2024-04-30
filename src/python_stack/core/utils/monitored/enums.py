@@ -5,6 +5,20 @@ Provides the enums for the monitor module.
 from enum import StrEnum
 
 
+class MonitorResourceTypeEnum(StrEnum):
+    """
+    Defines the possible types of resources that can be monitored.
+    """
+
+    DATABASE = "database"
+    CACHE = "cache"
+    QUEUE = "queue"
+    SERVICE = "service"
+    HTTP_CLIENT = "http_client"
+    APPLICATION = "application"
+    OTHER = "other"
+
+
 class MonitorTypeEnum(StrEnum):
     """
     Defines the possible types of monitors.
@@ -34,3 +48,11 @@ class ReadinessStatusEnum(StrEnum):
     NOT_READY = "not_ready"
     UNKNOWN = "unknown"
     DISABLED = "disabled"
+
+
+__all__ = (
+    "MonitorResourceTypeEnum",
+    "MonitorTypeEnum",
+    "HealthStatusEnum",
+    "ReadinessStatusEnum",
+)
