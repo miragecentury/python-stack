@@ -6,7 +6,7 @@ to expose health and readiness status through api endpoints.
 from typing import Dict
 
 import reactivex
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 # pylint: disable=unused-wildcard-import, wildcard-import
 from .enums import *
@@ -27,6 +27,7 @@ class MonitoredResource(BaseModel):
     Represents a monitored resource internally in the monitored service.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     types: set[MonitorTypeEnum]
     resource_type: MonitorResourceTypeEnum
     identifier: str
@@ -34,9 +35,6 @@ class MonitoredResource(BaseModel):
     readiness_status: ReadinessStatusEnum | None
     health_subject: reactivex.Subject[HealthStatusEnum] | None
     readiness_subject: reactivex.Subject[ReadinessStatusEnum] | None
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class MonitoredService:
