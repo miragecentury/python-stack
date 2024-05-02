@@ -2,8 +2,6 @@
 Package for creating an Application.
 """
 
-from logging.config import IDENTIFIER
-
 import fastapi
 import inject
 import uvicorn
@@ -72,7 +70,8 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
         Initializes the FastAPI application, creating one if not provided.
 
         Args:
-            fastapi_app (fastapi.FastAPI | None): The FastAPI application injected or created.
+            fastapi_app (fastapi.FastAPI | None): The FastAPI application
+            injected or created.
 
         Raises:
             AssertionError: If the required class attributes are not set.
@@ -101,23 +100,28 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
             event_type=self.FASTAPI_EVENT_SHUTDOWN, func=self._on_shutdown
         )
 
-    def __init_inject__(self) -> inject.Injector:
+    def __init_inject__(self, allow_override: bool = False) -> inject.Injector:
         """
         Initializes the dependency injection container.
         """
 
         def configure(binder: inject.Binder) -> None:
+            """
+            Configures the dependency injection container.
+            """
+
             binder.bind(cls=AbstractApplication, instance=self)
             binder.bind(cls=fastapi.FastAPI, instance=self.fastapi_app)
             binder.bind(cls=MonitoredService, instance=self._monitored_service)
 
-        return inject.configure(config=configure)
+        return inject.configure(config=configure, allow_override=allow_override)
 
     def __init__(
         self,
         fastapi_app: fastapi.FastAPI | None = None,
         host: str | None = DEFAULT_HOST,
         port: int | None = DEFAULT_PORT,
+        allow_override: bool = False,
     ) -> None:
         """
         Initializes the Application
@@ -134,7 +138,7 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
         self._monitored_service = MonitoredService()
 
         # Initialize the dependency injection container
-        self._injector = self.__init_inject__()
+        self._injector = self.__init_inject__(allow_override=allow_override)
 
         # Initialize the AbstractMonitored classes
         AbstractHealthMonitored.__init__(
@@ -149,6 +153,15 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
             identifier=self.MONITORED_IDENTIFIER,
             initial_readiness_status=ReadinessStatusEnum.NOT_READY,
         )
+
+    def get_injector(self) -> inject.Injector:
+        """
+        Gets the dependency injection container.
+
+        Returns:
+            The dependency injection container.
+        """
+        return self._injector
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
