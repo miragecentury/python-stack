@@ -2,12 +2,29 @@
 Provides a class for reading YAML files and converting them to Pydantic models.
 """
 
+import os
 from typing import Generic, TypeVar, get_args
 
 from pydantic import BaseModel
 from yaml import SafeLoader, load
 
 GenericPydanticModel = TypeVar("GenericPydanticModel", bound=BaseModel)
+
+
+class UnableToReadYamlFileError(Exception):
+    """
+    Raised when there is an error reading a YAML file.
+    """
+
+    def __init__(self, file_path: str, message: str) -> None:
+        """
+        Initializes the exception.
+
+        Args:
+          file_path (str): The path to the YAML file.
+          message (str): The error message.
+        """
+        super().__init__(f"Error reading YAML file: {file_path} - {message}")
 
 
 class YamlFileReader(Generic[GenericPydanticModel]):
@@ -44,10 +61,70 @@ class YamlFileReader(Generic[GenericPydanticModel]):
         # Store whether to use environment injection
         self._use_environment_injection: bool = use_environment_injection
 
+    def _filter_data_with_base_key(self, yaml_data: dict) -> dict:
+        """
+        Extracts the data from the YAML file with the base key.
+        Args:
+            yaml_data (dict): The data from the YAML file.
+        Returns:
+            dict: The filtered data from the YAML file.
+        Raises:
+            KeyError: If the base key is not found in the YAML file.
+        """
+        if self._yaml_base_key is not None:
+            _keys = self._yaml_base_key.split(".")
+            _keys.reverse()
+            while len(_keys) != 0:
+                try:
+                    _key = _keys.pop()
+                    yaml_data = yaml_data[_key]
+                except KeyError as _e:
+                    raise KeyError(
+                        f"Base key {_key} not found in YAML file"
+                        + " from {self._yaml_base_key}"
+                    ) from _e
+        return yaml_data
+
+    def _read_yaml_file(self, file_path: str) -> dict:
+        """
+        Reads the YAML file and returns the data as a dictionary.
+        Args:
+            file_path (str): The path to the YAML file.
+
+        Returns:
+            dict: The data from the YAML file.
+
+        Raises:
+            ValueError: If there is an error reading the file.
+            FileNotFoundError: If the file is not found.
+        """
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        with open(file_path, "r", encoding="UTF-8") as file:
+            _loader = SafeLoader(file)
+
+            try:
+                _yaml_data = load(file, Loader=_loader)
+            except Exception as _e:
+                raise ValueError(f"Error reading YAML file: {file_path}") from _e
+
+            return _yaml_data
+
     def read(self, file_path: str) -> GenericPydanticModel:
         """
         Reads the YAML file and converts it to a Pydantic model
         with or without environment injection.
+
+        Raises:
+            UnableToReadYamlFileError: If there is an error reading the file.
         """
-        with open(file_path, "r") as file:
-            yaml_data = load(file, Loader=SafeLoader)
+
+        # Read the YAML file and filter the data with the base key
+        try:
+            _yaml_data = self._read_yaml_file(file_path)
+            _yaml_data = self._filter_data_with_base_key(_yaml_data)
+        except (FileNotFoundError, ValueError, KeyError) as _e:
+            raise UnableToReadYamlFileError(file_path, str(_e)) from _e
+
+        # Convert the YAML data to a Pydantic model
