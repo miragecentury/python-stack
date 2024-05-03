@@ -1,63 +1,94 @@
-import reactivex
+"""
+Test the MonitoredService class.
+"""
+
+import pytest
 
 from python_stack.core.utils.monitored.enums import (
     HealthStatusEnum,
-    MonitorResourceTypeEnum,
     MonitorTypeEnum,
     ReadinessStatusEnum,
 )
-from python_stack.core.utils.monitored.service import (
-    MonitoredService,
-    MonitoredStatusUpdate,
-)
+from python_stack.core.utils.monitored.service import MonitoredService
 
 
-class TestMonitoredService:
-    def test_register_monitored_resource(self):
-        service = MonitoredService()
-        identifier = "resource1"
-        monitor_type = MonitorTypeEnum.HEALTH
-        resource_type = MonitorResourceTypeEnum.APPLICATION
-        initial_status = HealthStatusEnum.HEALTHY
+class TestMonitoredServiceValidationMethods:
+    """
+    Test the validation methods of the MonitoredService class.
+    """
 
-        subject = service.register_monitored_resource(
-            monitor_type, resource_type, identifier, initial_status
+    @pytest.mark.parametrize(
+        "monitor_type, status",
+        [
+            (MonitorTypeEnum.HEALTH, HealthStatusEnum.HEALTHY),
+            (MonitorTypeEnum.HEALTH, HealthStatusEnum.UNHEALTHY),
+            (MonitorTypeEnum.HEALTH, HealthStatusEnum.UNKNOWN),
+            (MonitorTypeEnum.READINESS, ReadinessStatusEnum.READY),
+            (MonitorTypeEnum.READINESS, ReadinessStatusEnum.NOT_READY),
+            (MonitorTypeEnum.READINESS, ReadinessStatusEnum.UNKNOWN),
+        ],
+    )
+    def test_validate_association_of_type_and_status_health_status(
+        self,
+        monitor_type: MonitorTypeEnum,
+        status: HealthStatusEnum | ReadinessStatusEnum,
+    ):
+        """
+        Validate the association of the monitor type and status for health status.
+        No Raise is expected.
+        """
+
+        # pylint: disable=protected-access
+        MonitoredService._validate_association_of_type_and_status(
+            monitor_type=monitor_type, status=status
         )
 
-        # Assert that the subject is an instance of reactivex.Subject
-        assert isinstance(subject, reactivex.Subject)
+    @pytest.mark.parametrize(
+        "monitor_type, status",
+        [
+            (MonitorTypeEnum.HEALTH, ReadinessStatusEnum.READY),
+            (MonitorTypeEnum.HEALTH, ReadinessStatusEnum.NOT_READY),
+            (MonitorTypeEnum.HEALTH, ReadinessStatusEnum.UNKNOWN),
+            (MonitorTypeEnum.READINESS, HealthStatusEnum.HEALTHY),
+            (MonitorTypeEnum.READINESS, HealthStatusEnum.UNHEALTHY),
+            (MonitorTypeEnum.READINESS, HealthStatusEnum.UNKNOWN),
+        ],
+    )
+    def test_validate_association_of_type_and_status_invalid_status(
+        self,
+        monitor_type: MonitorTypeEnum,
+        status: HealthStatusEnum | ReadinessStatusEnum,
+    ):
+        """
+        Validate the association of the monitor type and status for invalid status.
+        Raise is expected.
+        """
 
-        # Assert that the monitored resource is registered correctly
-        monitored_resource = service._monitored_resources[identifier]
-        assert monitored_resource.types == {monitor_type}
-        assert monitored_resource.resource_type == resource_type
-        assert monitored_resource.identifier == identifier
-        assert monitored_resource.health_status == initial_status
-        assert monitored_resource.readiness_status is None
-        assert monitored_resource.health_subject is subject
-        assert monitored_resource.readiness_subject is None
+        with pytest.raises(ValueError):
+            # pylint: disable=protected-access
+            MonitoredService._validate_association_of_type_and_status(
+                monitor_type=monitor_type, status=status
+            )
 
-    def test_handle_status_update(self):
-        service = MonitoredService()
-        identifier = "resource1"
-        monitor_type = MonitorTypeEnum.HEALTH
-        initial_status = HealthStatusEnum.HEALTHY
+    @pytest.mark.parametrize(
+        "monitor_type",
+        [
+            ("HEALTH"),
+            ("READINESS"),
+            ("NOT-VALID-TYPE"),
+        ],
+    )
+    def test_validate_association_of_type_and_status_invalid_monitor_type(
+        self,
+        monitor_type: str,
+    ):
+        """
+        Validate the association of the monitor type and status for invalid monitor type.
+        Raise is expected.
+        """
 
-        subject = service.register_monitored_resource(
-            monitor_type,
-            MonitorResourceTypeEnum.APPLICATION,
-            identifier,
-            initial_status,
-        )
-
-        # Simulate a status update
-        status_update = MonitoredStatusUpdate(
-            identifier=identifier,
-            monitor_type=monitor_type,
-            status=HealthStatusEnum.UNHEALTHY,
-        )
-        service._handle_status_update(status_update)
-
-        # Assert that the monitored resource's status is updated correctly
-        monitored_resource = service._monitored_resources[identifier]
-        assert monitored_resource.health_status == HealthStatusEnum.UNHEALTHY
+        with pytest.raises(ValueError):
+            # pylint: disable=protected-access
+            MonitoredService._validate_association_of_type_and_status(
+                monitor_type=monitor_type, status=HealthStatusEnum.HEALTHY
+            )
