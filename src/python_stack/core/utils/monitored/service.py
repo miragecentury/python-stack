@@ -6,35 +6,14 @@ to expose health and readiness status through api endpoints.
 from typing import Dict
 
 import reactivex
-from pydantic import BaseModel, ConfigDict
 
-# pylint: disable=unused-wildcard-import, wildcard-import
-from .enums import *
-
-
-class MonitoredStatusUpdate(BaseModel):
-    """
-    Represents a status update for a monitored resource exposed through an observable.
-    """
-
-    identifier: str
-    monitor_type: MonitorTypeEnum
-    status: HealthStatusEnum | ReadinessStatusEnum
-
-
-class MonitoredResource(BaseModel):
-    """
-    Represents a monitored resource internally in the monitored service.
-    """
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    types: set[MonitorTypeEnum]
-    resource_type: MonitorResourceTypeEnum
-    identifier: str
-    health_status: HealthStatusEnum | None
-    readiness_status: ReadinessStatusEnum | None
-    health_subject: reactivex.Subject[HealthStatusEnum] | None
-    readiness_subject: reactivex.Subject[ReadinessStatusEnum] | None
+from .enums import (
+    HealthStatusEnum,
+    MonitorResourceTypeEnum,
+    MonitorTypeEnum,
+    ReadinessStatusEnum,
+)
+from .models import MonitoredResource, MonitoredStatusUpdate
 
 
 class MonitoredService:
@@ -52,33 +31,105 @@ class MonitoredService:
     def _calculate_readiness_status(self) -> None:
         pass
 
-    def _handle_status_update(self, status_updated: MonitoredStatusUpdate):
+    @classmethod
+    def _validate_association_of_type_and_status(
+        cls,
+        monitor_type: MonitorTypeEnum,
+        status: HealthStatusEnum | ReadinessStatusEnum,
+    ) -> None:
+        """
+        Validate the association of the monitor type and status.
+
+        Args:
+            monitor_type (MonitorTypeEnum): The type of monitor to validate.
+            status (HealthStatusEnum | ReadinessStatusEnum): The status to validate.
+
+        Raises:
+            ValueError: If the monitor type is not supported.
+            ValueError: If the initial status is not a valid status
+            for the monitor type.
+        """
+        # Validate the initial status based on the monitor type
+        match monitor_type:
+            case MonitorTypeEnum.HEALTH:
+                if status not in HealthStatusEnum or not isinstance(
+                    status, HealthStatusEnum
+                ):
+                    raise ValueError(
+                        f"Initial status {status} is not a valid HealthStatusEnum."
+                    )
+            case MonitorTypeEnum.READINESS:
+                if status not in ReadinessStatusEnum or not isinstance(
+                    status, ReadinessStatusEnum
+                ):
+                    raise ValueError(
+                        f"Initial status {status} is not a valid ReadinessStatusEnum."
+                    )
+            case _:
+                raise ValueError(f"Monitor type {monitor_type} is not supported.")
+
+    def _handle_status_update(self, status_updated: MonitoredStatusUpdate) -> None:
+        """
+        Receive and handle a status update for a monitored resource.
+
+        Args:
+            status_updated (MonitoredStatusUpdate): The status update to handle.
+
+        Raises:
+            ValueError: If the monitor type is not supported.
+            ValueError: If the status is not a valid status for the monitor type.
+            ValueError: If the resource is not registered with the monitored service.
+
+        """
+
+        # Validation
+        try:
+            self._validate_association_of_type_and_status(
+                monitor_type=status_updated.monitor_type,
+                status=status_updated.status,
+            )
+        except ValueError as e:
+            raise e
 
         if self._monitored_resources.get(status_updated.identifier) is None:
             raise ValueError(
                 f"Resource {status_updated.identifier} is not registered "
                 + "with the monitored service."
             )
+
+        # Update the status based on the monitor type
         match status_updated.monitor_type:
             case MonitorTypeEnum.HEALTH:
                 self._monitored_resources[status_updated.identifier].health_status = (
                     status_updated.status
                 )
-
             case MonitorTypeEnum.READINESS:
                 self._monitored_resources[
                     status_updated.identifier
                 ].readiness_status = status_updated.status
-            case _:
-                raise ValueError(
-                    f"Monitor type {status_updated.monitor_type} is not supported."
-                )
 
     def _register_monitored_resource_subject(
         self,
         identifier: str,
         monitor_type: MonitorTypeEnum,
     ) -> reactivex.Subject[MonitoredStatusUpdate]:
+        """
+        Create and register a subject for the monitored resource
+        with the given identifier and monitor type to simplify
+        status updates for the resource.
+
+        Args:
+            identifier (str): The unique identifier for the resource.
+            monitor_type (MonitorTypeEnum): The type of monitor to register
+            the resource with.
+
+        Returns:
+            reactivex.Subject[MonitoredStatusUpdate]: The subject for
+            the monitored resource.
+
+        Raises:
+            ValueError: If the monitor type is not supported.
+        """
 
         _subject = reactivex.Subject[MonitoredStatusUpdate]()
         _subject.subscribe(
@@ -123,20 +174,14 @@ class MonitoredService:
             ValueError: If the resource is already registered as the same monitor type.
         """
 
-        # Validate the initial status based on the monitor type
-        match monitor_type:
-            case MonitorTypeEnum.HEALTH:
-                if initial_status not in HealthStatusEnum:
-                    raise ValueError(
-                        f"Initial status {initial_status} is not a valid HealthStatusEnum."
-                    )
-            case MonitorTypeEnum.READINESS:
-                if initial_status not in ReadinessStatusEnum:
-                    raise ValueError(
-                        f"Initial status {initial_status} is not a valid ReadinessStatusEnum."
-                    )
-            case _:
-                raise ValueError(f"Monitor type {monitor_type} is not supported.")
+        # Validation
+        try:
+            self._validate_association_of_type_and_status(
+                monitor_type=monitor_type,
+                status=initial_status,
+            )
+        except ValueError as e:
+            raise e
 
         # Ensure that the resource does not already exist
         _resource = self._monitored_resources.get(identifier, None)
@@ -146,7 +191,8 @@ class MonitoredService:
         if _resource is not None:
             if monitor_type in _resource.types:
                 raise ValueError(
-                    f"Resource {identifier} is already registered as a {monitor_type} resource."
+                    f"Resource {identifier} is already registered "
+                    + "as a {monitor_type} resource."
                 )
         else:
             _resource = MonitoredResource(
@@ -158,6 +204,8 @@ class MonitoredService:
                 health_subject=None,
                 readiness_subject=None,
             )
+
+        # Actions
 
         # Add the monitor type to the resource
         _resource.types.add(monitor_type)
