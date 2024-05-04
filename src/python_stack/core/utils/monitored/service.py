@@ -82,7 +82,7 @@ class MonitoredService:
 
         """
 
-        # Validation
+        # Validations ========================================
         try:
             self._validate_association_of_type_and_status(
                 monitor_type=status_updated.monitor_type,
@@ -96,6 +96,8 @@ class MonitoredService:
                 f"Resource {status_updated.identifier} is not registered "
                 + "with the monitored service."
             )
+
+        # Actions ============================================
 
         # Update the status based on the monitor type
         match status_updated.monitor_type:
@@ -114,7 +116,7 @@ class MonitoredService:
         monitor_type: MonitorTypeEnum,
     ) -> reactivex.Subject[MonitoredStatusUpdate]:
         """
-        Create and register a subject for the monitored resource
+        Create and subscribe to a subject for the monitored resource
         with the given identifier and monitor type to simplify
         status updates for the resource.
 
@@ -127,8 +129,6 @@ class MonitoredService:
             reactivex.Subject[MonitoredStatusUpdate]: The subject for
             the monitored resource.
 
-        Raises:
-            ValueError: If the monitor type is not supported.
         """
 
         _subject = reactivex.Subject[MonitoredStatusUpdate]()
@@ -174,7 +174,7 @@ class MonitoredService:
             ValueError: If the resource is already registered as the same monitor type.
         """
 
-        # Validation
+        # Validations ========================================
         try:
             self._validate_association_of_type_and_status(
                 monitor_type=monitor_type,
@@ -194,7 +194,11 @@ class MonitoredService:
                     f"Resource {identifier} is already registered "
                     + "as a {monitor_type} resource."
                 )
-        else:
+
+        # Actions ============================================
+
+        # If the MonitoredResource does not exist, create it
+        if _resource is None:
             _resource = MonitoredResource(
                 types=set(),
                 resource_type=resource_type,
@@ -204,8 +208,6 @@ class MonitoredService:
                 health_subject=None,
                 readiness_subject=None,
             )
-
-        # Actions
 
         # Add the monitor type to the resource
         _resource.types.add(monitor_type)
