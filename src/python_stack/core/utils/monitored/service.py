@@ -90,6 +90,18 @@ class MonitoredService:
         self.health_status: HealthStatusEnum = HealthStatusEnum.UNKNOWN
         self.readiness_status: ReadinessStatusEnum = ReadinessStatusEnum.UNKNOWN
 
+    def get_health_status(self) -> HealthStatusEnum:
+        """
+        Get the health status of the monitored resources.
+        """
+        return self.health_status
+
+    def get_readiness_status(self) -> ReadinessStatusEnum:
+        """
+        Get the readiness status of the monitored resources.
+        """
+        return self.readiness_status
+
     def _calculate_health_status(self) -> None:
         _resolver = HealthStatusServiceResolver(
             _monitored_resources=self._monitored_resources
