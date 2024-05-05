@@ -36,7 +36,6 @@ class HealthStatusEnum(StrEnum):
     HEALTHY = "healthy"
     UNHEALTHY = "unhealthy"
     UNKNOWN = "unknown"
-    DISABLED = "disabled"
 
 
 class ReadinessStatusEnum(StrEnum):
@@ -47,7 +46,6 @@ class ReadinessStatusEnum(StrEnum):
     READY = "ready"
     NOT_READY = "not_ready"
     UNKNOWN = "unknown"
-    DISABLED = "disabled"
 
 
 __all__ = (

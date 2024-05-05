@@ -16,20 +16,91 @@ from .enums import (
 from .models import MonitoredResource, MonitoredStatusUpdate
 
 
+class HealthStatusServiceResolver:
+    """
+    Provides a service for resolving the health status
+    based on the monitored resources.
+    """
+
+    def __init__(self, _monitored_resources: dict[str, MonitoredResource]) -> None:
+        """
+        Initialize the health status service resolver with the monitored resources.
+        """
+        self._monitored_resources: Dict[str, MonitoredResource] = _monitored_resources
+
+    def resolve(self) -> HealthStatusEnum:
+        """
+        Resolve the health status based on the monitored resources.
+        """
+        _health_status = HealthStatusEnum.HEALTHY
+
+        # Check if any resource has a status of UNHEALTHY
+        for _resource in self._monitored_resources.values():
+            if MonitorTypeEnum.HEALTH not in _resource.types:
+                # Skip resources that are not health monitored
+                continue
+            if _resource.health_status == HealthStatusEnum.UNHEALTHY:
+                _health_status = HealthStatusEnum.UNHEALTHY
+                break
+
+        return _health_status
+
+
+class ReadinessStatusServiceResolver:
+    """
+    Provides a service for resolving the readiness status
+    based on the monitored resources.
+    """
+
+    def __init__(self, _monitored_resources: dict[str, MonitoredResource]) -> None:
+        """
+        Initialize the readiness status service resolver with the monitored resources.
+        """
+        self._monitored_resources: Dict[str, MonitoredResource] = _monitored_resources
+
+    def resolve(self) -> ReadinessStatusEnum:
+        """
+        Resolve the readiness status based on the monitored resources.
+        """
+        _readiness_status = ReadinessStatusEnum.READY
+
+        # Check if any resource has a status of NOT_READY
+        for _resource in self._monitored_resources.values():
+            if MonitorTypeEnum.READINESS not in _resource.types:
+                # Skip resources that are not readiness monitored
+                continue
+            if _resource.readiness_status == ReadinessStatusEnum.NOT_READY:
+                _readiness_status = ReadinessStatusEnum.NOT_READY
+                break
+
+        return _readiness_status
+
+
 class MonitoredService:
     """
     Provides a service for registering and managing monitored resources
-    and calcu
+    and calculating the health and readiness status based on the resources.
     """
+
+    health_resolver: HealthStatusServiceResolver
+    readiness_resolver: ReadinessStatusServiceResolver
 
     def __init__(self) -> None:
         self._monitored_resources: Dict[str, MonitoredResource] = {}
+        self.health_status: HealthStatusEnum = HealthStatusEnum.UNKNOWN
+        self.readiness_status: ReadinessStatusEnum = ReadinessStatusEnum.UNKNOWN
 
     def _calculate_health_status(self) -> None:
-        pass
+        _resolver = HealthStatusServiceResolver(
+            _monitored_resources=self._monitored_resources
+        )
+        self.health_status: HealthStatusEnum = _resolver.resolve()
 
     def _calculate_readiness_status(self) -> None:
-        pass
+        _resolver = ReadinessStatusServiceResolver(
+            _monitored_resources=self._monitored_resources
+        )
+        self.readiness_status: ReadinessStatusEnum = _resolver.resolve()
 
     @classmethod
     def _validate_association_of_type_and_status(
