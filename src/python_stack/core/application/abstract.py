@@ -20,6 +20,8 @@ from python_stack.core.utils.monitored.service import (
     MonitorResourceTypeEnum,
 )
 
+from python_stack.core.api.monitored import api_v1_monitored, api_v2_monitored
+
 
 class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
     """
@@ -60,7 +62,7 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
         )
 
     def _on_startup(self) -> None:
-        pass
+        self.change_readiness_status(ReadinessStatusEnum.READY)
 
     def _on_shutdown(self) -> None:
         pass
@@ -84,13 +86,13 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
 
         # Create a new FastAPI application if one is not provided
         if fastapi_app is None:
-            fastapi_app = fastapi.FastAPI(
+            self.fastapi_app = fastapi.FastAPI(
                 title=self._title,
                 description=self._description,
                 version=self._version,
             )
-
-        self.fastapi_app: fastapi.FastAPI = fastapi_app
+        else:
+            self.fastapi_app: fastapi.FastAPI = fastapi_app
 
         # Register the startup and shutdown events
         self.fastapi_app.add_event_handler(
@@ -100,21 +102,31 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
             event_type=self.FASTAPI_EVENT_SHUTDOWN, func=self._on_shutdown
         )
 
+        # Register the monitored API routers
+        self.fastapi_app.router.include_router(router=api_v1_monitored)
+        self.fastapi_app.router.include_router(router=api_v2_monitored)
+
+        print("FastAPI Application Initialized")
+
+    def _configure_inject(self, binder: inject.Binder) -> None:
+        """
+        Configures the dependency injection container.
+
+        Args:
+            binder (inject.Binder): The dependency injection container.
+        """
+        binder.bind(cls=AbstractApplication, instance=self)
+        binder.bind(cls=fastapi.FastAPI, instance=self.fastapi_app)
+        binder.bind(cls=MonitoredService, instance=self._monitored_service)
+
     def __init_inject__(self, allow_override: bool = False) -> inject.Injector:
         """
         Initializes the dependency injection container.
         """
 
-        def configure(binder: inject.Binder) -> None:
-            """
-            Configures the dependency injection container.
-            """
-
-            binder.bind(cls=AbstractApplication, instance=self)
-            binder.bind(cls=fastapi.FastAPI, instance=self.fastapi_app)
-            binder.bind(cls=MonitoredService, instance=self._monitored_service)
-
-        return inject.configure(config=configure, allow_override=allow_override)
+        return inject.configure(
+            config=self._configure_inject, allow_override=allow_override
+        )
 
     def __init__(
         self,
@@ -153,6 +165,7 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
             identifier=self.MONITORED_IDENTIFIER,
             initial_readiness_status=ReadinessStatusEnum.NOT_READY,
         )
+        self.change_health_status(HealthStatusEnum.HEALTHY)
 
     def get_injector(self) -> inject.Injector:
         """
