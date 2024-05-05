@@ -7,23 +7,23 @@ import inject
 import uvicorn
 from starlette.types import Receive, Scope, Send
 
-from python_stack.core.utils.monitored.abstract import (
+from .plugins import AbstractPluginsApplication
+
+from ..utils.monitored import (
     AbstractHealthMonitored,
     AbstractReadinessMonitored,
-)
-from python_stack.core.utils.monitored.enums import (
     HealthStatusEnum,
     ReadinessStatusEnum,
-)
-from python_stack.core.utils.monitored.service import (
     MonitoredService,
     MonitorResourceTypeEnum,
 )
 
-from python_stack.core.api.monitored import api_v1_monitored, api_v2_monitored
+from ..api.monitored import api_v1_monitored, api_v2_monitored
 
 
-class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
+class AbstractApplication(
+    AbstractHealthMonitored, AbstractReadinessMonitored, AbstractPluginsApplication
+):
     """
     Abstract class for creating an Application.
     """
@@ -38,6 +38,9 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
     DEFAULT_PORT: int = 8080
     DEFAULT_HOST: str = "0.0.0.0"
 
+    # Inject Constants
+    DEFAULT_INJECT_ALLOW_OVERRIDE: bool = False
+
     # FastAPI Constants
     FASTAPI_EVENT_STARTUP = "startup"
     FASTAPI_EVENT_SHUTDOWN = "shutdown"
@@ -47,17 +50,23 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
     _title: str | None = None
     _description: str | None = None
 
-    def build_uvicorn_config(self) -> uvicorn.Config:
+    def build_uvicorn_config(
+        self, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT
+    ) -> uvicorn.Config:
         """
         Builds a uvicorn configuration object for the FastAPI application.
+
+        Args:
+            host (str): The host to bind the server to.
+            port (int): The port to bind the server to.
 
         Returns:
             A uvicorn configuration object.
         """
         return uvicorn.Config(
             app=self.fastapi_app,
-            host=self._host,
-            port=self._port,
+            host=host,
+            port=port,
             loop="asyncio",
         )
 
@@ -118,6 +127,8 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
         binder.bind(cls=AbstractApplication, instance=self)
         binder.bind(cls=fastapi.FastAPI, instance=self.fastapi_app)
         binder.bind(cls=MonitoredService, instance=self._monitored_service)
+        # Call the configure method for each plugin
+        super()._configure_inject(binder=binder)
 
     def __init_inject__(self, allow_override: bool = False) -> inject.Injector:
         """
@@ -131,17 +142,14 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
     def __init__(
         self,
         fastapi_app: fastapi.FastAPI | None = None,
-        host: str | None = DEFAULT_HOST,
-        port: int | None = DEFAULT_PORT,
-        allow_override: bool = False,
+        allow_override: bool = DEFAULT_INJECT_ALLOW_OVERRIDE,
     ) -> None:
         """
         Initializes the Application
         """
 
-        # Set the host and port for the server
-        self._host = host
-        self._port = port
+        # Initialize the AbstractPluginsApplication
+        AbstractPluginsApplication.__init__(self=self)
 
         # Initialize the FastAPI application
         self.__init_fastapi__(fastapi_app=fastapi_app)
@@ -165,6 +173,7 @@ class AbstractApplication(AbstractHealthMonitored, AbstractReadinessMonitored):
             identifier=self.MONITORED_IDENTIFIER,
             initial_readiness_status=ReadinessStatusEnum.NOT_READY,
         )
+        # Set the health status to healthy
         self.change_health_status(HealthStatusEnum.HEALTHY)
 
     def get_injector(self) -> inject.Injector:

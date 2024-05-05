@@ -5,8 +5,11 @@ from .enums import (
     MonitorTypeEnum,
     ReadinessStatusEnum,
 )
+from .abstract import AbstractHealthMonitored, AbstractReadinessMonitored
 
 __all__ = (
+    "AbstractHealthMonitored",
+    "AbstractReadinessMonitored",
     "HealthStatusEnum",
     "MonitorResourceTypeEnum",
     "MonitorTypeEnum",
