@@ -188,10 +188,12 @@ class MonitoredService:
                 self._monitored_resources[status_updated.identifier].health_status = (
                     status_updated.status
                 )
+                self._calculate_health_status()
             case MonitorTypeEnum.READINESS:
                 self._monitored_resources[
                     status_updated.identifier
                 ].readiness_status = status_updated.status
+                self._calculate_readiness_status()
 
     def _register_monitored_resource_subject(
         self,

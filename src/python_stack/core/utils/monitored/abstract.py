@@ -97,7 +97,7 @@ class AbstractReadinessMonitored(AbstractMonitored):
         self._monitor_readiness_status: ReadinessStatusEnum = initial_readiness_status
 
         # Register the monitored resource with the monitored service
-        self._monitor_health_subject: reactivex.Subject[ReadinessStatusEnum] = (
+        self._monitor_readiness_subject: reactivex.Subject[ReadinessStatusEnum] = (
             self._monitor_service.register_monitored_resource(
                 monitor_type=MonitorTypeEnum.READINESS,
                 resource_type=resource_type,
@@ -116,4 +116,4 @@ class AbstractReadinessMonitored(AbstractMonitored):
         # Update the readiness status
         self._monitor_readiness_status = new_readiness_status
         # Notify the monitored service of the status change
-        self._monitor_health_subject.on_next(new_readiness_status)
+        self._monitor_readiness_subject.on_next(new_readiness_status)
