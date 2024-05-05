@@ -10,6 +10,23 @@
             "request": "launch",
             "module": "python_stack.example",
             "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "args": [
+                "tests",
+                "--no-cov"
+            ],
+            "justMyCode": false,
+            "purpose": [
+                "debug-test",
+                "debug-in-terminal"
+            ],
+            "env": {
+                "PYTEST_ADDOPTS": "--no-cov"
+            }
         }
     ]
 }

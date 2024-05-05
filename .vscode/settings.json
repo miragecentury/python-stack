@@ -11,11 +11,13 @@
         "**/__pycache__": true,
         "**/.pytest_cache": true,
     },
+    "python.defaultInterpreterPath": ".venv/bin/python",
     "python.terminal.activateEnvironment": true,
     "python.terminal.activateEnvInCurrentTerminal": true,
     "python.testing.pytestPath": "pytest",
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "python.testing.pytestArgs": [
+        "--no-cov",
         "tests"
     ],
     "python.testing.unittestEnabled": false,
@@ -25,6 +27,7 @@
         "./src/",
         "./tests/"
     ],
+    "python.envFile": "${workspaceFolder}/.env",
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {

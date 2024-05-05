@@ -34,7 +34,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = "tests -n auto --cov=python_stack --cov-report=term-missing --color=yes"
+addopts = "tests -n auto --color=yes"
 
 [tool.black]
 line-length = 88
