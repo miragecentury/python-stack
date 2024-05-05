@@ -1,5 +1,5 @@
 """
-This module contains the API endpoints for the health of the application.
+This module contains the API endpoints for the readiness of the application.
 """
 
 from http import HTTPStatus
@@ -10,45 +10,45 @@ from pydantic import BaseModel
 
 from typing_extensions import Annotated
 from python_stack.core.api.tags import MONITORING
-from python_stack.core.utils.monitored import HealthStatusEnum, MonitoredService
+from python_stack.core.utils.monitored import ReadinessStatusEnum, MonitoredService
 
-api_v1_monitored_health = APIRouter(prefix="/health")
-api_v2_monitored_health = APIRouter(prefix="/health")
+api_v1_monitored_readiness = APIRouter(prefix="/readiness")
+api_v2_monitored_readiness = APIRouter(prefix="/readiness")
 
 
-class MonitoredHealthResponse(Response, BaseModel):
+class MonitoredReadinessResponse(Response, BaseModel):
     """
     The response model for the health status of the application.
     """
 
-    health: HealthStatusEnum
+    readiness: ReadinessStatusEnum
 
 
-@api_v1_monitored_health.get(
+@api_v1_monitored_readiness.get(
     "",
-    response_model=MonitoredHealthResponse,
-    tags=[MONITORING],
+    response_model=MonitoredReadinessResponse,
     summary="Get the health status of the application.",
     description="Get the health status of the application.",
+    tags=[MONITORING],
     responses={
         HTTPStatus.OK.value: {
-            "model": MonitoredHealthResponse,
-            "description": "Application is Healthy",
-            "content": {"application/json": {"example": {"health": "healthy"}}},
+            "model": MonitoredReadinessResponse,
+            "description": "Application is ready",
+            "content": {"application/json": {"example": {"readiness": "ready"}}},
         },
         HTTPStatus.SERVICE_UNAVAILABLE.value: {
-            "model": MonitoredHealthResponse,
+            "model": MonitoredReadinessResponse,
             "description": "Application is Unhealthy",
             "content": {
                 "application/json": {
                     "examples": {
                         "unhealthy": {
-                            "summary": "Application is Unhealthy",
-                            "value": {"health": "unhealthy"},
+                            "summary": "Application is not ready",
+                            "value": {"readiness": "not_ready"},
                         },
                         "unknown": {
                             "summary": "Application is Unknown",
-                            "value": {"health": "unknown"},
+                            "value": {"readiness": "unknown"},
                         },
                     }
                 }
@@ -60,7 +60,7 @@ def get_health(
     monitored_service: Annotated[
         MonitoredService, Depends(lambda: inject.instance(MonitoredService))
     ],
-    response: MonitoredHealthResponse,
+    response: MonitoredReadinessResponse,
 ) -> dict:
     """
     Get the health status of the service.
@@ -72,19 +72,19 @@ def get_health(
     Returns:
         MonitoredHealthResponse: The health status of the service.
     """
-    response.health = monitored_service.get_health_status()
+    response.readiness = monitored_service.get_readiness_status()
     match (response.health):
-        case HealthStatusEnum.HEALTHY:
-            # The health status is healthy.
+        case ReadinessStatusEnum.READY:
+            # The health status is ready.
             response.status_code = HTTPStatus.OK
-        case HealthStatusEnum.UNHEALTHY:
-            # The health status is unhealthy.
+        case ReadinessStatusEnum.NOT_READY:
+            # The health status is not_ready.
             response.status_code = HTTPStatus.SERVICE_UNAVAILABLE
         case _:
             # This is the default case, which is used when the health status is unknown.
             # By convention, the health status is set to unknown
             # when the health check fails.
             response.status_code = HTTPStatus.SERVICE_UNAVAILABLE
-            response.health = HealthStatusEnum.UNKNOWN
+            response.readiness = ReadinessStatusEnum.UNKNOWN
 
     return response
