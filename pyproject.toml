@@ -36,6 +36,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 addopts = "tests -n auto --color=yes"
+filterwarnings = "ignore::DeprecationWarning:reactivex"
 
 [tool.black]
 line-length = 88
