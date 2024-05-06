@@ -3,20 +3,20 @@ This module contains the API endpoints for the health of the application.
 """
 
 from http import HTTPStatus
-import inject
-from fastapi import APIRouter, Depends, Response
+
+from fastapi import APIRouter, Response
 from pydantic import BaseModel
-
-
 from typing_extensions import Annotated
+
 from python_stack.core.api.tags import MONITORING
+from python_stack.core.utils.fastapi_inject import inject_depends
 from python_stack.core.utils.monitored import HealthStatusEnum, MonitoredService
 
 api_v1_monitored_health = APIRouter(prefix="/health")
 api_v2_monitored_health = APIRouter(prefix="/health")
 
 
-class MonitoredHealthResponse(Response, BaseModel):
+class MonitoredHealthModel(BaseModel):
     """
     The response model for the health status of the application.
     """
@@ -26,18 +26,18 @@ class MonitoredHealthResponse(Response, BaseModel):
 
 @api_v1_monitored_health.get(
     "",
-    response_model=MonitoredHealthResponse,
+    response_model=MonitoredHealthModel,
     tags=[MONITORING],
     summary="Get the health status of the application.",
     description="Get the health status of the application.",
     responses={
         HTTPStatus.OK.value: {
-            "model": MonitoredHealthResponse,
+            "model": MonitoredHealthModel,
             "description": "Application is Healthy",
             "content": {"application/json": {"example": {"health": "healthy"}}},
         },
         HTTPStatus.SERVICE_UNAVAILABLE.value: {
-            "model": MonitoredHealthResponse,
+            "model": MonitoredHealthModel,
             "description": "Application is Unhealthy",
             "content": {
                 "application/json": {
@@ -57,11 +57,9 @@ class MonitoredHealthResponse(Response, BaseModel):
     },
 )
 def get_health(
-    monitored_service: Annotated[
-        MonitoredService, Depends(lambda: inject.instance(MonitoredService))
-    ],
-    response: MonitoredHealthResponse,
-) -> dict:
+    response: Response,
+    monitored_service: Annotated[MonitoredService, inject_depends(MonitoredService)],
+) -> MonitoredHealthModel:
     """
     Get the health status of the service.
 
@@ -72,8 +70,8 @@ def get_health(
     Returns:
         MonitoredHealthResponse: The health status of the service.
     """
-    response.health = monitored_service.get_health_status()
-    match (response.health):
+    _response = MonitoredHealthModel(health=monitored_service.get_health_status())
+    match (_response.health):
         case HealthStatusEnum.HEALTHY:
             # The health status is healthy.
             response.status_code = HTTPStatus.OK
@@ -85,6 +83,6 @@ def get_health(
             # By convention, the health status is set to unknown
             # when the health check fails.
             response.status_code = HTTPStatus.SERVICE_UNAVAILABLE
-            response.health = HealthStatusEnum.UNKNOWN
+            _response.health = HealthStatusEnum.UNKNOWN
 
-    return response
+    return _response

@@ -7,18 +7,16 @@ import inject
 import uvicorn
 from starlette.types import Receive, Scope, Send
 
-from .plugins import AbstractPluginsApplication
-
+from ..api.monitored import api_v1_monitored, api_v2_monitored
 from ..utils.monitored import (
     AbstractHealthMonitored,
     AbstractReadinessMonitored,
     HealthStatusEnum,
-    ReadinessStatusEnum,
     MonitoredService,
     MonitorResourceTypeEnum,
+    ReadinessStatusEnum,
 )
-
-from ..api.monitored import api_v1_monitored, api_v2_monitored
+from .plugins import AbstractPluginsApplication
 
 
 class AbstractApplication(
@@ -37,9 +35,6 @@ class AbstractApplication(
     # Server Constants
     DEFAULT_PORT: int = 8080
     DEFAULT_HOST: str = "0.0.0.0"
-
-    # Inject Constants
-    DEFAULT_INJECT_ALLOW_OVERRIDE: bool = False
 
     # FastAPI Constants
     FASTAPI_EVENT_STARTUP = "startup"
@@ -130,19 +125,21 @@ class AbstractApplication(
         # Call the configure method for each plugin
         super()._configure_inject(binder=binder)
 
-    def __init_inject__(self, allow_override: bool = False) -> inject.Injector:
+    def __init_inject__(self, use_mode_test: bool) -> inject.Injector:
         """
         Initializes the dependency injection container.
         """
-
-        return inject.configure(
-            config=self._configure_inject, allow_override=allow_override
-        )
+        if use_mode_test:
+            return inject.clear_and_configure(
+                config=self._configure_inject, allow_override=True
+            )
+        else:
+            return inject.configure(config=self._configure_inject, allow_override=False)
 
     def __init__(
         self,
         fastapi_app: fastapi.FastAPI | None = None,
-        allow_override: bool = DEFAULT_INJECT_ALLOW_OVERRIDE,
+        use_mode_test: bool = False,
     ) -> None:
         """
         Initializes the Application
@@ -158,7 +155,7 @@ class AbstractApplication(
         self._monitored_service = MonitoredService()
 
         # Initialize the dependency injection container
-        self._injector = self.__init_inject__(allow_override=allow_override)
+        self._injector = self.__init_inject__(use_mode_test=use_mode_test)
 
         # Initialize the AbstractMonitored classes
         AbstractHealthMonitored.__init__(

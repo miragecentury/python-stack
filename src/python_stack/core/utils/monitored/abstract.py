@@ -21,11 +21,13 @@ class AbstractMonitored(ABC):
     Represents a class that is monitored.
     """
 
-    @inject.param(name="monitored_service", cls=MonitoredService)
+    @inject.params(monitored_service=MonitoredService)
     def __init__(self, monitored_service=None) -> None:
         """
         Initializes the AbstractMonitored class.
         """
+        # Ensure the monitored service is not None
+        assert monitored_service is not None
 
         super().__init__()
         # Initialize the monitor type subjects

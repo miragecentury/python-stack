@@ -3,20 +3,20 @@ This module contains the API endpoints for the readiness of the application.
 """
 
 from http import HTTPStatus
-import inject
-from fastapi import APIRouter, Depends, Response
+
+from fastapi import APIRouter, Response
 from pydantic import BaseModel
-
-
 from typing_extensions import Annotated
+
 from python_stack.core.api.tags import MONITORING
-from python_stack.core.utils.monitored import ReadinessStatusEnum, MonitoredService
+from python_stack.core.utils.fastapi_inject import inject_depends
+from python_stack.core.utils.monitored import MonitoredService, ReadinessStatusEnum
 
 api_v1_monitored_readiness = APIRouter(prefix="/readiness")
 api_v2_monitored_readiness = APIRouter(prefix="/readiness")
 
 
-class MonitoredReadinessResponse(Response, BaseModel):
+class MonitoredReadinessModel(BaseModel):
     """
     The response model for the health status of the application.
     """
@@ -26,19 +26,19 @@ class MonitoredReadinessResponse(Response, BaseModel):
 
 @api_v1_monitored_readiness.get(
     "",
-    response_model=MonitoredReadinessResponse,
+    response_model=MonitoredReadinessModel,
     summary="Get the health status of the application.",
     description="Get the health status of the application.",
     tags=[MONITORING],
     responses={
         HTTPStatus.OK.value: {
-            "model": MonitoredReadinessResponse,
+            "model": MonitoredReadinessModel,
             "description": "Application is ready",
             "content": {"application/json": {"example": {"readiness": "ready"}}},
         },
         HTTPStatus.SERVICE_UNAVAILABLE.value: {
-            "model": MonitoredReadinessResponse,
-            "description": "Application is Unhealthy",
+            "model": MonitoredReadinessModel,
+            "description": "Display the readiness status of the application.",
             "content": {
                 "application/json": {
                     "examples": {
@@ -56,12 +56,10 @@ class MonitoredReadinessResponse(Response, BaseModel):
         },
     },
 )
-def get_health(
-    monitored_service: Annotated[
-        MonitoredService, Depends(lambda: inject.instance(MonitoredService))
-    ],
-    response: MonitoredReadinessResponse,
-) -> dict:
+def get_readiness(
+    monitored_service: Annotated[MonitoredService, inject_depends(MonitoredService)],
+    response: Response,
+) -> MonitoredReadinessModel:
     """
     Get the health status of the service.
 
@@ -72,8 +70,10 @@ def get_health(
     Returns:
         MonitoredHealthResponse: The health status of the service.
     """
-    response.readiness = monitored_service.get_readiness_status()
-    match (response.health):
+    _response = MonitoredReadinessModel(
+        readiness=monitored_service.get_readiness_status()
+    )
+    match (_response.readiness):
         case ReadinessStatusEnum.READY:
             # The health status is ready.
             response.status_code = HTTPStatus.OK
@@ -85,6 +85,6 @@ def get_health(
             # By convention, the health status is set to unknown
             # when the health check fails.
             response.status_code = HTTPStatus.SERVICE_UNAVAILABLE
-            response.readiness = ReadinessStatusEnum.UNKNOWN
+            _response.readiness = ReadinessStatusEnum.UNKNOWN
 
-    return response
+    return _response
