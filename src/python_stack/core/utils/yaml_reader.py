@@ -3,12 +3,9 @@ Provides a class for reading YAML files and converting them to Pydantic models.
 """
 
 import os
-from typing import Generic, TypeVar, get_args
+import re
 
-from pydantic import BaseModel
 from yaml import SafeLoader, load
-
-GenericPydanticModel = TypeVar("GenericPydanticModel", bound=BaseModel)
 
 
 class UnableToReadYamlFileError(Exception):
@@ -27,10 +24,12 @@ class UnableToReadYamlFileError(Exception):
         super().__init__(f"Error reading YAML file: {file_path} - {message}")
 
 
-class YamlFileReader(Generic[GenericPydanticModel]):
+class YamlFileReader:
     """
     Handles reading YAML files and converting them to Pydantic models.
     """
+
+    re = re.compile(r"\${([A-Za-z0-9\-\_]+):?([A-Za-z0-9\-\_]*)?}")
 
     def __init__(
         self,
@@ -48,11 +47,6 @@ class YamlFileReader(Generic[GenericPydanticModel]):
           use_environment_injection (bool, optional): Whether to use
           environment injection. Defaults to True.
         """
-
-        # Extract the generic class from the class definition.
-        # https://peps.python.org/pep-0560/
-        # pylint: disable=no-member
-        self._generic_class: type = get_args(self.__orig_bases__[0])[0]
 
         # Store the file path and base key for YAML reading
         self._yaml_base_key: str | None = yaml_base_key
@@ -105,13 +99,40 @@ class YamlFileReader(Generic[GenericPydanticModel]):
             _loader = SafeLoader(file)
 
             try:
-                _yaml_data = load(file, Loader=_loader)
+                _yaml_data = _loader.get_data()
             except Exception as _e:
                 raise ValueError(f"Error reading YAML file: {file_path}") from _e
 
             return _yaml_data
 
-    def read(self, file_path: str) -> GenericPydanticModel:
+    def _inject_environment_variables(self, yaml_data: dict | str | list) -> dict:
+        """
+        Injects environment variables into the YAML data recursively.
+        Args:
+            yaml_data (dict | str | list): The data from the YAML file.
+        Returns:
+            dict: The data from the YAML file with environment variables injected.
+        """
+        if isinstance(yaml_data, dict):
+            for _key, _value in yaml_data.items():
+                yaml_data[_key] = self._inject_environment_variables(_value)
+        elif isinstance(yaml_data, list):
+            yaml_data = [
+                self._inject_environment_variables(_value) for _value in yaml_data
+            ]
+        elif isinstance(yaml_data, str):
+            while True:
+                _match = self.re.search(yaml_data)
+                if _match is None:
+                    break
+                _env_key = _match.group(1)
+                _env_default = _match.group(2)
+                _env_value = os.getenv(_env_key, _env_default)
+                yaml_data = yaml_data.replace(_match.group(0), _env_value)
+
+        return yaml_data
+
+    def read(self) -> dict:
         """
         Reads the YAML file and converts it to a Pydantic model
         with or without environment injection.
@@ -122,9 +143,14 @@ class YamlFileReader(Generic[GenericPydanticModel]):
 
         # Read the YAML file and filter the data with the base key
         try:
-            _yaml_data = self._read_yaml_file(file_path)
+            _yaml_data = self._read_yaml_file(file_path=self._file_path)
             _yaml_data = self._filter_data_with_base_key(_yaml_data)
         except (FileNotFoundError, ValueError, KeyError) as _e:
-            raise UnableToReadYamlFileError(file_path, str(_e)) from _e
+            raise UnableToReadYamlFileError(
+                file_path=self._file_path, message=str(_e)
+            ) from _e
 
-        # Convert the YAML data to a Pydantic model
+        if self._use_environment_injection:
+            _yaml_data = self._inject_environment_variables(_yaml_data)
+
+        return _yaml_data

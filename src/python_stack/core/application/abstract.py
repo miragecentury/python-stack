@@ -149,6 +149,7 @@ class AbstractApplication(
         Initializes the Application
         """
 
+        self._application_package: str = application_package
         self._environment: str = environment
 
         # Initialize the AbstractPluginsApplication
@@ -205,6 +206,15 @@ class AbstractApplication(
             str: The environment of the application.
         """
         return self._environment
+
+    def get_application_package(self) -> str:
+        """
+        Gets the application package.
+
+        Returns:
+            str: The application package.
+        """
+        return self._application_package
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """

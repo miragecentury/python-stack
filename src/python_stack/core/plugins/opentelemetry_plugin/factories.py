@@ -7,15 +7,20 @@ from opentelemetry.sdk.resources import (
     SERVICE_INSTANCE_ID,
     SERVICE_NAME,
     SERVICE_VERSION,
+    TELEMETRY_SDK_LANGUAGE,
     Resource,
 )
 
 from python_stack.core.application.abstract import AbstractApplication
-from python_stack.core.utils.yaml_reader import YamlReader
+from python_stack.core.utils.yaml_reader import YamlFileReader
+from python_stack.core.utils.importlib import get_path_file_in_package
 
 from .configs import OpenTelemetryConfiguration
 
 RESOURCE_DATADOG_ENV_ATTRIBUTE = "env"
+TELEMETRY_SDK_LANGUAGE_PYTHON = "python"
+
+YAML_FILE_NAME = "application.yaml"
 
 
 class OpenTelemetryManager:
@@ -28,7 +33,9 @@ class OpenTelemetryManagerFactory:
     """
 
     @classmethod
-    def build_opentelemetry_config(cls) -> OpenTelemetryConfiguration:
+    def build_opentelemetry_config(
+        cls, application: AbstractApplication
+    ) -> OpenTelemetryConfiguration:
         """
         Build the OpenTelemetry Config for the application.
 
@@ -36,7 +43,17 @@ class OpenTelemetryManagerFactory:
             OpenTelemetryConfiguration: The OpenTelemetry Config for the application.
         """
 
-        return
+        # Read the OpenTelemetry Configuration from the YAML file
+        yaml_reader = YamlFileReader(
+            file_path=get_path_file_in_package(
+                YAML_FILE_NAME, application.get_application_package()
+            ),
+            yaml_base_key="opentelemetry",
+            use_environment_injection=True,
+        )
+        opentelemetry_config_data = yaml_reader.read()
+
+        return OpenTelemetryConfiguration(**opentelemetry_config_data)
 
     @classmethod
     def build_opentelemetry_resource(cls, application: AbstractApplication) -> Resource:
@@ -56,6 +73,7 @@ class OpenTelemetryManagerFactory:
                 SERVICE_INSTANCE_ID: application.MONITORED_IDENTIFIER,
                 SERVICE_VERSION: application.get_version(),
                 DEPLOYMENT_ENVIRONMENT: application.get_environment(),
+                TELEMETRY_SDK_LANGUAGE: TELEMETRY_SDK_LANGUAGE_PYTHON,
                 # Datadog specific attribute
                 RESOURCE_DATADOG_ENV_ATTRIBUTE: application.get_environment(),
             }
