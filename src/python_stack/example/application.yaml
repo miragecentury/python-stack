@@ -6,5 +6,6 @@ application:
 
 opentelemetry:
   enabled: true
-  collector:
-    endpoint: http://localhost:4317/v1/trace
+  metrics_enabled: true
+  traces_enabled: true
+  collector_endpoint: http://localhost:4317/v1/trace

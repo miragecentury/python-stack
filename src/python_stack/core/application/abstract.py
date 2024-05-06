@@ -65,10 +65,12 @@ class AbstractApplication(
             loop="asyncio",
         )
 
-    def _on_startup(self) -> None:
+    async def _on_startup(self) -> None:
+        """ """
+
         self.change_readiness_status(ReadinessStatusEnum.READY)
 
-    def _on_shutdown(self) -> None:
+    async def _on_shutdown(self) -> None:
         pass
 
     def __init_fastapi__(self, fastapi_app: fastapi.FastAPI | None = None) -> None:
@@ -138,12 +140,16 @@ class AbstractApplication(
 
     def __init__(
         self,
+        application_package: str,
         fastapi_app: fastapi.FastAPI | None = None,
+        environment: str = "development",
         use_mode_test: bool = False,
     ) -> None:
         """
         Initializes the Application
         """
+
+        self._environment: str = environment
 
         # Initialize the AbstractPluginsApplication
         AbstractPluginsApplication.__init__(self=self)
@@ -181,6 +187,24 @@ class AbstractApplication(
             The dependency injection container.
         """
         return self._injector
+
+    def get_version(self) -> str:
+        """
+        Gets the version of the application.
+
+        Returns:
+            str: The version of the application.
+        """
+        return self._version
+
+    def get_environment(self) -> str:
+        """
+        Gets the environment of the application.
+
+        Returns:
+            str: The environment of the application.
+        """
+        return self._environment
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """

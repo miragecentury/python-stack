@@ -29,4 +29,4 @@ class TestCaseAbstract(ABC):
             _description = "Application for testing."
 
         # use_mode_test=True is used to allow the test to override injected value.
-        return Application(use_mode_test=True)
+        return Application(application_package=__package__, use_mode_test=True)
