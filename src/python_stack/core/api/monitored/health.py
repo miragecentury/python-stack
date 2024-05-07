@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from typing_extensions import Annotated
 
 from python_stack.core.api.tags import MONITORING
-from python_stack.core.utils.fastapi_inject import inject_depends
+from python_stack.core.utils.inject_helper import inject_depends
 from python_stack.core.utils.monitored import HealthStatusEnum, MonitoredService
 
 api_v1_monitored_health = APIRouter(prefix="/health")

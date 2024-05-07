@@ -34,6 +34,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from python_stack.core.application.abstract import AbstractApplication
 from python_stack.core.utils.importlib import get_path_file_in_package
 from python_stack.core.utils.yaml_reader import YamlFileReader
+from python_stack.core.utils.inject_helper import inject_or_constructor
 
 from .configs import OpenTelemetryConfiguration
 
@@ -210,14 +211,10 @@ class OpenTelemetryManagerFactory:
         # It's the only object that must be built in constructor
         # to prevent the application from starting if the configuration is invalid.
         if configuration is None:
-            try:
-                self._opentelemetry_configuration = inject.instance(
-                    OpenTelemetryConfiguration
-                )
-            except inject.InjectorException:
-                self._opentelemetry_configuration: OpenTelemetryConfiguration = (
-                    self.build_opentelemetry_config(application=application)
-                )
+            self._opentelemetry_configuration = inject_or_constructor(
+                OpenTelemetryConfiguration,
+                lambda: self.build_opentelemetry_config(application=application),
+            )
         else:
             self._opentelemetry_configuration = configuration
 
