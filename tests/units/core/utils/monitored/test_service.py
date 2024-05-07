@@ -3,9 +3,11 @@ Test the MonitoredService class.
 """
 
 import pytest
+import reactivex
 
 from python_stack.core.utils.monitored.enums import (
     HealthStatusEnum,
+    MonitorResourceTypeEnum,
     MonitorTypeEnum,
     ReadinessStatusEnum,
 )
@@ -76,6 +78,7 @@ class TestMonitoredServiceValidationMethods:
             ("HEALTH"),
             ("READINESS"),
             ("NOT-VALID-TYPE"),
+            (MonitorTypeEnum.READINESS),
         ],
     )
     def test_validate_association_of_type_and_status_invalid_monitor_type(
@@ -92,3 +95,33 @@ class TestMonitoredServiceValidationMethods:
             MonitoredService._validate_association_of_type_and_status(
                 monitor_type=monitor_type, status=HealthStatusEnum.HEALTHY
             )
+
+        with pytest.raises(ValueError):
+            _monitored_service = MonitoredService()
+            _monitored_service.register_monitored_resource(
+                monitor_type=monitor_type,
+                initial_status=HealthStatusEnum.HEALTHY,
+                resource_type=MonitorResourceTypeEnum.APPLICATION,
+                identifier="test",
+            )
+
+    def test_validate_not_duplicate_registration(self):
+        """
+        Validate the not duplicate registration of the monitored resource.
+        """
+
+        _monitor_service = MonitoredService()
+
+        _monitor_resource = {
+            "monitor_type": MonitorTypeEnum.HEALTH,
+            "initial_status": HealthStatusEnum.HEALTHY,
+            "resource_type": MonitorResourceTypeEnum.APPLICATION,
+            "identifier": "test",
+        }
+
+        _subject = _monitor_service.register_monitored_resource(**_monitor_resource)
+
+        assert isinstance(_subject, reactivex.Subject)
+
+        with pytest.raises(ValueError):
+            _monitor_service.register_monitored_resource(**_monitor_resource)

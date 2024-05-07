@@ -87,32 +87,38 @@ class MonitoredService:
 
     def __init__(self) -> None:
         self._monitored_resources: Dict[str, MonitoredResource] = {}
-        self.health_status: HealthStatusEnum = HealthStatusEnum.UNKNOWN
-        self.readiness_status: ReadinessStatusEnum = ReadinessStatusEnum.UNKNOWN
+        self._health_status: HealthStatusEnum = HealthStatusEnum.UNKNOWN
+        self._readiness_status: ReadinessStatusEnum = ReadinessStatusEnum.UNKNOWN
 
     def get_health_status(self) -> HealthStatusEnum:
         """
         Get the health status of the monitored resources.
         """
-        return self.health_status
+        return self._health_status
 
     def get_readiness_status(self) -> ReadinessStatusEnum:
         """
         Get the readiness status of the monitored resources.
         """
-        return self.readiness_status
+        return self._readiness_status
 
     def _calculate_health_status(self) -> None:
-        _resolver = HealthStatusServiceResolver(
+        """
+        Calculate the health status based on the monitored resources.
+        """
+
+        self._health_status: HealthStatusEnum = HealthStatusServiceResolver(
             _monitored_resources=self._monitored_resources
-        )
-        self.health_status: HealthStatusEnum = _resolver.resolve()
+        ).resolve()
 
     def _calculate_readiness_status(self) -> None:
-        _resolver = ReadinessStatusServiceResolver(
+        """
+        Calculate the readiness status based on the monitored resources.
+        """
+
+        self._readiness_status: ReadinessStatusEnum = ReadinessStatusServiceResolver(
             _monitored_resources=self._monitored_resources
-        )
-        self.readiness_status: ReadinessStatusEnum = _resolver.resolve()
+        ).resolve()
 
     @classmethod
     def _validate_association_of_type_and_status(
