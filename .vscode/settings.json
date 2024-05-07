@@ -39,5 +39,6 @@
     ],
     "editor.rulers": [
         88
-    ]
+    ],
+    "markiscodecoverage.searchCriteria": "coverage.lcov"
 }
