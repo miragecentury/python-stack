@@ -2,12 +2,18 @@
 Package for creating an Application.
 """
 
+from typing import Callable
+
 import fastapi
 import inject
 import uvicorn
 from starlette.types import Receive, Scope, Send
 
+from python_stack.core.application.config import AbstractApplicationConfig
+from python_stack.core.application.enums import Environment
+
 from ..api.monitored import api_v1_monitored, api_v2_monitored
+from ..utils.importlib import get_path_file_in_package
 from ..utils.monitored import (
     AbstractHealthMonitored,
     AbstractReadinessMonitored,
@@ -16,6 +22,7 @@ from ..utils.monitored import (
     MonitorResourceTypeEnum,
     ReadinessStatusEnum,
 )
+from ..utils.yaml_reader import YamlFileReader
 from .plugins import AbstractPluginsApplication
 
 
@@ -127,12 +134,18 @@ class AbstractApplication(
         # Call the configure method for each plugin
         super()._configure_inject(binder=binder)
 
-    def __init_inject__(self, use_mode_test: bool) -> inject.Injector:
+        if self._inject_override_binder is not None:
+            binder.install(self._inject_override_binder)
+
+    def __init_inject__(
+        self,
+        use_mode_test: bool,
+    ) -> inject.Injector:
         """
         Initializes the dependency injection container.
         """
         if use_mode_test:
-            return inject.clear_and_configure(
+            _inject = inject.clear_and_configure(
                 config=self._configure_inject, allow_override=True
             )
         else:
@@ -141,16 +154,26 @@ class AbstractApplication(
     def __init__(
         self,
         application_package: str,
+        application_configuration: AbstractApplicationConfig = None,
         fastapi_app: fastapi.FastAPI | None = None,
-        environment: str = "development",
         use_mode_test: bool = False,
+        inject_override_binder: Callable[[inject.Binder], None] = None,
     ) -> None:
         """
         Initializes the Application
         """
 
+        if application_configuration is None:
+            application_configuration = AbstractApplicationConfig(
+                **YamlFileReader(
+                    get_path_file_in_package("application.yaml", application_package),
+                    yaml_base_key="application",
+                    use_environment_injection=True,
+                ).read()
+            )
+
         self._application_package: str = application_package
-        self._environment: str = environment
+        self._environment: Environment = application_configuration.environment
 
         # Initialize the AbstractPluginsApplication
         AbstractPluginsApplication.__init__(self=self)
@@ -162,6 +185,7 @@ class AbstractApplication(
         self._monitored_service = MonitoredService()
 
         # Initialize the dependency injection container
+        self._inject_override_binder = inject_override_binder
         self._injector = self.__init_inject__(use_mode_test=use_mode_test)
 
         # Initialize the AbstractMonitored classes

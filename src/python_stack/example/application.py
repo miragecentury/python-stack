@@ -2,6 +2,9 @@
 Example Application class for the Python Stack.
 """
 
+from typing import Callable
+
+import inject
 from inject import Binder
 
 from python_stack.core.application import AbstractApplication
@@ -17,13 +20,19 @@ class Application(AbstractApplication):
     _description = "Example Python Stack Application"
 
     def __init__(
-        self, fastapi_app=None, environment="development", use_mode_test=False
+        self,
+        fastapi_app=None,
+        use_mode_test=False,
+        inject_override_binder: Callable[[inject.Binder], None] = None,
     ):
         """
         Initializes the Application
         """
         super().__init__(
-            fastapi_app, environment, use_mode_test, application_package=__package__
+            fastapi_app=fastapi_app,
+            use_mode_test=use_mode_test,
+            application_package=__package__,
+            inject_override_binder=inject_override_binder,
         )
 
     def _configure_inject(self, binder: Binder) -> None:
