@@ -17,8 +17,8 @@ class TestApiMonitoredHealthSimple(TestCaseAbstract):
         """
         Provide the test case for the health endpoint.
         """
-
-        with TestClient(self.build_application()) as _client:
-            response = _client.get("/api/v1/monitored/health")
-            assert response.status_code == 200
-            assert response.json() == {"health": HealthStatusEnum.HEALTHY.value}
+        with self.build_application() as _application:
+            with TestClient(_application) as _client:
+                response = _client.get("/api/v1/monitored/health")
+                assert response.status_code == 200
+                assert response.json() == {"health": HealthStatusEnum.HEALTHY.value}

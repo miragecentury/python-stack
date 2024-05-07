@@ -22,7 +22,6 @@ class Application(AbstractApplication):
     def __init__(
         self,
         fastapi_app=None,
-        use_mode_test=False,
         inject_override_binder: Callable[[inject.Binder], None] = None,
     ):
         """
@@ -30,7 +29,6 @@ class Application(AbstractApplication):
         """
         super().__init__(
             fastapi_app=fastapi_app,
-            use_mode_test=use_mode_test,
             application_package=__package__,
             inject_override_binder=inject_override_binder,
         )

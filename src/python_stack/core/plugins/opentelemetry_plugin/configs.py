@@ -3,6 +3,7 @@ Configuration for the OpenTelemetry plugin.
 """
 
 from enum import StrEnum, auto
+from typing import Self
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -18,15 +19,17 @@ class OpenTelemetryConfigurationPropagationMode(StrEnum):
     B3 = auto()
 
 
+DEFAULT_COLLECTOR_ENDPOINT = "http://localhost:4317"
+DEFAULT_ENABLED = False
+DEFAULT_TRACES_ENABLED = False
+DEFAULT_TRACES_BATCH = False
+DEFAULT_METRICS_ENABLED = False
+
+
 class OpenTelemetryConfiguration(BaseModel):
     """
     Configuration for OpenTelemetry.
     """
-
-    DEFAULT_COLLECTOR_ENDPOINT = "http://localhost:4317"
-    DEFAULT_ENABLED = False
-    DEFAULT_METRICS_ENABLED = False
-    DEFAULT_TRACES_ENABLED = False
 
     enabled: bool = Field(
         default=DEFAULT_ENABLED, description="Whether OpenTelemetry is enabled."
@@ -35,10 +38,17 @@ class OpenTelemetryConfiguration(BaseModel):
         default=DEFAULT_METRICS_ENABLED,
         description="Whether OpenTelemetry metrics are enabled.",
     )
-    traces_enabled: bool = Field(
+    spans_enabled: bool = Field(
         default=DEFAULT_TRACES_ENABLED,
         description="Whether OpenTelemetry traces are enabled.",
     )
+
+    spans_processor_batch: bool = Field(
+        default=DEFAULT_TRACES_BATCH,
+        description="Whether to use the batch span processor."
+        + "If False, the simple span processor is used.",
+    )
+
     propagation_mode: OpenTelemetryConfigurationPropagationMode = Field(
         default=OpenTelemetryConfigurationPropagationMode.DISABLED,
         description="The propagation mode for OpenTelemetry.",
@@ -50,24 +60,26 @@ class OpenTelemetryConfiguration(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_enabled_consistency(self) -> None:
+    def validate_enabled_consistency(self) -> Self:
         """
         Validate that the enabled flag is consistent with the metrics and traces flags.
         """
         # If metrics or traces are enabled, OpenTelemetry must be enabled.
-        if (self.metrics_enabled or self.traces_enabled) and not self.enabled:
+        if (self.metrics_enabled or self.spans_enabled) and not self.enabled:
             raise ValueError(
                 "Metrics and traces can only be enabled if OpenTelemetry is enabled."
             )
 
         # If OpenTelemetry is enabled, either metrics or traces must be enabled.
-        if self.enabled and not (self.metrics_enabled or self.traces_enabled):
+        if self.enabled and not (self.metrics_enabled or self.spans_enabled):
             raise ValueError(
                 "OpenTelemetry must have either metrics or traces enabled."
             )
 
+        return self
+
     @model_validator(mode="after")
-    def validate_propagation_mode_consistency(self) -> None:
+    def validate_propagation_mode_consistency(self) -> Self:
         """
         Validate that the propagation mode is consistent with the enabled flag.
         """
@@ -79,3 +91,5 @@ class OpenTelemetryConfiguration(BaseModel):
             raise ValueError(
                 "Propagation mode can only be enabled if OpenTelemetry is enabled."
             )
+
+        return self

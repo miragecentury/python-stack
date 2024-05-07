@@ -23,7 +23,7 @@ from ..utils.monitored import (
     ReadinessStatusEnum,
 )
 from ..utils.yaml_reader import YamlFileReader
-from .plugins import AbstractPluginsApplication
+from .plugins import AbstractPluginsApplication, PluginPriorityEnum, PluginProtocol
 
 
 class AbstractApplication(
@@ -51,6 +51,10 @@ class AbstractApplication(
     _version: str | None = None
     _title: str | None = None
     _description: str | None = None
+
+    plugins_default: list[PluginProtocol | str] = [
+        "python_stack.core.plugins.opentelemetry_plugin"
+    ]
 
     def build_uvicorn_config(
         self, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT
@@ -128,6 +132,7 @@ class AbstractApplication(
         Args:
             binder (inject.Binder): The dependency injection container.
         """
+        self._inject_binder = binder
         binder.bind(cls=AbstractApplication, instance=self)
         binder.bind(cls=fastapi.FastAPI, instance=self.fastapi_app)
         binder.bind(cls=MonitoredService, instance=self._monitored_service)
@@ -139,24 +144,23 @@ class AbstractApplication(
 
     def __init_inject__(
         self,
-        use_mode_test: bool,
+        inject_allow_override: bool = False,
     ) -> inject.Injector:
         """
         Initializes the dependency injection container.
         """
-        if use_mode_test:
-            _inject = inject.clear_and_configure(
-                config=self._configure_inject, allow_override=True
-            )
-        else:
-            return inject.configure(config=self._configure_inject, allow_override=False)
+        return inject.configure(
+            config=self._configure_inject,
+            allow_override=inject_allow_override,
+            clear=True,
+        )
 
     def __init__(
         self,
         application_package: str,
         application_configuration: AbstractApplicationConfig = None,
         fastapi_app: fastapi.FastAPI | None = None,
-        use_mode_test: bool = False,
+        inject_allow_override: bool = False,
         inject_override_binder: Callable[[inject.Binder], None] = None,
     ) -> None:
         """
@@ -178,15 +182,25 @@ class AbstractApplication(
         # Initialize the AbstractPluginsApplication
         AbstractPluginsApplication.__init__(self=self)
 
+        self.load(priority=PluginPriorityEnum.IMMEDIATE)
+
         # Initialize the FastAPI application
         self.__init_fastapi__(fastapi_app=fastapi_app)
 
         # Initialize the MonitoredService
         self._monitored_service = MonitoredService()
 
+        self.load(priority=PluginPriorityEnum.NORMAL)
+        self.load(priority=PluginPriorityEnum.DELAYED)
+
         # Initialize the dependency injection container
-        self._inject_override_binder = inject_override_binder
-        self._injector = self.__init_inject__(use_mode_test=use_mode_test)
+        self._inject_override_binder: Callable[[inject.Binder], None] = (
+            inject_override_binder
+        )
+        self._inject_binder: inject.Binder | None = None
+        self._injector: inject.Injector = self.__init_inject__(
+            inject_allow_override=inject_allow_override
+        )
 
         # Initialize the AbstractMonitored classes
         AbstractHealthMonitored.__init__(
@@ -203,6 +217,15 @@ class AbstractApplication(
         )
         # Set the health status to healthy
         self.change_health_status(HealthStatusEnum.HEALTHY)
+
+    def get_inject_binder(self) -> inject.Binder:
+        """
+        Gets the dependency injection binder.
+
+        Returns:
+            The dependency injection binder.
+        """
+        return self._inject_binder
 
     def get_injector(self) -> inject.Injector:
         """
@@ -222,7 +245,7 @@ class AbstractApplication(
         """
         return self._version
 
-    def get_environment(self) -> str:
+    def get_environment(self) -> Environment:
         """
         Gets the environment of the application.
 

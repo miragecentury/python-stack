@@ -2,6 +2,8 @@
 This module contains the code to configure the OpenTelemetry plugin.
 """
 
+from typing import TYPE_CHECKING, Callable
+
 from inject import Binder
 
 from python_stack.core.application.plugins import PluginPriorityEnum
@@ -10,23 +12,20 @@ PLUGIN_NAME: str = "opentelemetry_plugin"
 PLUGIN_PRIORITY: PluginPriorityEnum = PluginPriorityEnum.IMMEDIATE
 
 
-def load() -> None:
+from .factories import OpenTelemetryManager, OpenTelemetryManagerFactory
+
+if TYPE_CHECKING:
+    from python_stack.core.application import AbstractApplication
+
+
+def load(application: "AbstractApplication") -> Callable[[Binder], None]:
     """
     Load the OpenTelemetry plugin.
 
     This method is called when the plugin is loaded.
     """
-    pass
-
-
-def configure(binder: Binder) -> None:
-    """
-    Configure the injector with the OpenTelemetry plugin related bindings.
-
-    Args:
-        binder (Binder): The binder object to configure the injector.
-    """
-    pass
+    _manager = OpenTelemetryManagerFactory(application=application).build()
+    return _manager.inject_configure
 
 
 def on_startup() -> None:

@@ -2,10 +2,11 @@
 Provides an abstract class for creating an application with plugins.
 """
 
+import importlib
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import IntEnum
-from typing import Protocol, runtime_checkable
+from typing import Callable, Protocol, runtime_checkable
 
 import inject
 
@@ -32,22 +33,11 @@ class PluginProtocol(Protocol):
     PLUGIN_PRIORITY: PluginPriorityEnum
 
     @abstractmethod
-    def load(self) -> None:
+    def load(self, application) -> Callable[[inject.Binder], None] | None:
         """
         Load the plugin.
 
         This method is called when the plugin is loaded.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def configure(self, binder: inject.Binder) -> None:
-        """
-        Provides a way to configure injector with the plugin related bindings.
-
-        Args:
-            binder (Binder): The binder object to configure the injector.
-
         """
         raise NotImplementedError
 
@@ -75,9 +65,9 @@ class AbstractPluginsApplication(ABC):
     Provides an abstract class for creating an application with plugins.
     """
 
-    default_plugins: set[PluginProtocol] = set()
+    plugins_default: list[PluginProtocol | str] = list()
 
-    def _validate_plugins(self, plugins: set[PluginProtocol]) -> None:
+    def _validate_plugins(self, plugins: list[PluginProtocol]) -> None:
         """
         Check if the package are instances of PluginProtocol.
 
@@ -128,9 +118,16 @@ class AbstractPluginsApplication(ABC):
         """
 
         if plugins is not None:
-            self._plugins: set[PluginProtocol] = self.default_plugins.union(plugins)
-        else:
-            self._plugins: set[PluginProtocol] = self.default_plugins
+            self.plugins_default.extend(plugins)
+
+        self._plugins: list[PluginProtocol] = []
+
+        for plugin in self.plugins_default:
+            if isinstance(plugin, str):
+                plugin_module = importlib.import_module(plugin)
+                self._plugins.append(plugin_module)
+            else:
+                self._plugins.append(plugin)
 
         # Validate the plugins (raises TypeError if invalid)
         self._validate_plugins(self._plugins)
@@ -138,6 +135,20 @@ class AbstractPluginsApplication(ABC):
         self._plugins_ordered: dict[PluginPriorityEnum, list[PluginProtocol]] = (
             self._order_plugins_by_priority(self._plugins)
         )
+        # Initialize the ordered inject configure dictionary for later use
+        self._plugins_ordered_inject_configure: dict[
+            PluginPriorityEnum, list[Callable[[inject.Binder], None]]
+        ] = defaultdict(list)
+
+    def load(self, priority: PluginPriorityEnum) -> None:
+        """
+        Load the plugins in the order of priority.
+
+        Args:
+            priority (PluginPriorityEnum): The priority of the plugins to load.
+        """
+        for plugin in self._plugins_ordered[priority]:
+            self._plugins_ordered_inject_configure[priority].append(plugin.load(self))
 
     def _configure_inject(self, binder: inject.Binder) -> None:
         """
@@ -147,6 +158,10 @@ class AbstractPluginsApplication(ABC):
             binder (inject.Binder): The dependency injection container.
         """
         # Call the configure method for each plugin in order of priority
-        for _priority, plugins in self._plugins_ordered.items():
-            for plugin in plugins:
-                plugin.configure(binder)
+        for (
+            _,
+            plugins_inject_configure,
+        ) in self._plugins_ordered_inject_configure.items():
+            for inject_configure in plugins_inject_configure:
+                if inject_configure is not None:
+                    binder.install(inject_configure)

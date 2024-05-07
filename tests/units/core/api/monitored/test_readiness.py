@@ -17,8 +17,8 @@ class TestApiMonitoredReadinessSimple(TestCaseAbstract):
         """
         Test the readiness endpoint.
         """
-
-        with TestClient(self.build_application()) as _client:
-            response = _client.get("/api/v1/monitored/readiness")
-            assert response.status_code == 200
-            assert response.json() == {"readiness": ReadinessStatusEnum.READY.value}
+        with self.build_application() as _application:
+            with TestClient(_application) as _client:
+                response = _client.get("/api/v1/monitored/readiness")
+                assert response.status_code == 200
+                assert response.json() == {"readiness": ReadinessStatusEnum.READY.value}
