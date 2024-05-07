@@ -9,9 +9,9 @@ from uvicorn import Server
 from .application import Application
 
 
-async def main() -> None:
+async def serve() -> None:
     """
-    Main entrypoint for the Python Stack Example Application.
+    Serve the Python Stack Example Application.
     """
     # Create a new Application instance
     _app = Application()
@@ -21,10 +21,17 @@ async def main() -> None:
     await _server.serve()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """
+    Main entrypoint for the Python Stack Example Application.
+    """
     try:
-        asyncio.run(main())
+        asyncio.run(serve())
     except KeyboardInterrupt:
         # silence the stack trace when the user interrupts the application
         # with a keyboard interrupt
         pass
+
+
+if __name__ == "__main__":
+    main()
