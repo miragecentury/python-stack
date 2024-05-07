@@ -6,9 +6,6 @@ from enum import StrEnum, auto
 
 from pydantic import BaseModel, Field, model_validator
 
-from python_stack.core.utils.importlib import get_path_file_in_package
-from python_stack.core.utils.yaml_reader import YamlFileReader
-
 OPENTELEMETRY_CONFIGURATION_APPLICATION_YAML_KEY = "opentelemetry"
 
 
@@ -82,15 +79,3 @@ class OpenTelemetryConfiguration(BaseModel):
             raise ValueError(
                 "Propagation mode can only be enabled if OpenTelemetry is enabled."
             )
-
-
-class OpenTelemetryConfigurationAsYamlFile(YamlFileReader[OpenTelemetryConfiguration]):
-
-    def __init__(self) -> None:
-        super().__init__(
-            file_path=get_path_file_in_package(
-                "application.yaml",
-            ),
-            yaml_base_key=OPENTELEMETRY_CONFIGURATION_APPLICATION_YAML_KEY,
-            use_environment_injection=True,
-        )
