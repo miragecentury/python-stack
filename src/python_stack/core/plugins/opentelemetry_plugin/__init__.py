@@ -9,7 +9,7 @@ from inject import Binder
 from python_stack.core.application.plugins import PluginPriorityEnum
 
 PLUGIN_NAME: str = "opentelemetry_plugin"
-PLUGIN_PRIORITY: PluginPriorityEnum = PluginPriorityEnum.IMMEDIATE
+PLUGIN_PRIORITY: PluginPriorityEnum = PluginPriorityEnum.NORMAL
 
 
 from .factories import OpenTelemetryManager, OpenTelemetryManagerFactory
@@ -25,6 +25,7 @@ def load(application: "AbstractApplication") -> Callable[[Binder], None]:
     This method is called when the plugin is loaded.
     """
     _manager = OpenTelemetryManagerFactory(application=application).build()
+    _manager.instrument_fastapi(application.fastapi_app)
     return _manager.inject_configure
 
 

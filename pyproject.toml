@@ -46,6 +46,7 @@ addopts = "tests -n auto --color=yes"
 filterwarnings = [
     "ignore::DeprecationWarning:reactivex",
     "ignore::DeprecationWarning:importlib",
+    "ignore::DeprecationWarning:opentelemetry",
 ]
 
 [tool.black]

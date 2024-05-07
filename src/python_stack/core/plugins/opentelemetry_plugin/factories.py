@@ -4,7 +4,10 @@
 
 from typing import Callable, Tuple
 
+import fastapi
 import inject
+
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
@@ -30,6 +33,8 @@ from opentelemetry.sdk.trace.export import (
     SpanProcessor,
 )
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+from opentelemetry.trace import set_tracer_provider
 
 from python_stack.core.application.abstract import AbstractApplication
 from python_stack.core.utils.importlib import get_path_file_in_package
@@ -64,7 +69,18 @@ class OpenTelemetryManager:
         self._resource = resource
         self._span_processor = span_processor
         self._span_exporter = span_exporter
-        self._tracer_provider: list[TracerProvider] = [tracer_provider]
+
+        self._tracer_provider: list[TracerProvider] = []
+        if tracer_provider is not None:
+            self._tracer_provider.append(tracer_provider)
+            set_tracer_provider(tracer_provider)
+
+    def instrument_fastapi(self, app: fastapi.FastAPI) -> None:
+        """
+        Instrument FastAPI with OpenTelemetry.
+        """
+
+        FastAPIInstrumentor().instrument_app(app)
 
     def inject_configure(self, binder: inject.Binder) -> None:
         """
@@ -169,15 +185,17 @@ class OpenTelemetryManagerFactory:
         tracer_provider = TracerProvider(resource=resource)
 
         if configuration.spans_enabled:
-
             if span_exporter is None:
                 # TODO: Add support for ChannelCredentials
                 # TODO: Add support for Compression
                 # TODO: Add support for Headers
                 # TODO: Add support for Timeout
-                span_exporter = OTLPSpanExporter(
-                    endpoint=configuration.collector_endpoint,
-                    insecure=configuration.collector_endpoint.startswith("http://"),
+                span_exporter = inject_or_constructor(
+                    SpanExporter,
+                    lambda: OTLPSpanExporter(
+                        endpoint=configuration.collector_endpoint,
+                        insecure=configuration.collector_endpoint.startswith("http://"),
+                    ),
                 )
             # TODO: Add support for max_queue_size, max_export_batch_size,
             # TODO: Add support scheduled_delay, and export_timeout
