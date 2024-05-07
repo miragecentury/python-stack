@@ -1,10 +1,10 @@
 """ Provide importlib functions """
 
-from importlib.abc import Traversable
 from importlib.resources import files
+from os import PathLike
 
 
-def get_path_file_in_package(filename: str, package: str) -> Traversable:
+def get_path_file_in_package(filename: str, package: str) -> PathLike:
     """
     Return Absolute Path of file in package
 
