@@ -2,7 +2,7 @@
 Package for creating an Application.
 """
 
-from typing import Callable, Coroutine
+from typing import Callable
 
 import fastapi
 import inject
@@ -22,6 +22,7 @@ from ..utils.monitored import (
     ReadinessStatusEnum,
 )
 from ..utils.yaml_reader import YamlFileReader
+from ..utils.inject_helper import inject_or_constructor
 from .abstracts.plugins import (
     AbstractPluginsApplication,
     PluginPriorityEnum,
@@ -96,7 +97,6 @@ class AbstractApplication(
     def __init__(
         self,
         application_package: str,
-        application_configuration: AbstractApplicationConfig = None,
         fastapi_app: fastapi.FastAPI | None = None,
         inject_allow_override: bool = False,
         inject_override_binder: Callable[[inject.Binder], None] = None,
@@ -105,17 +105,20 @@ class AbstractApplication(
         Initializes the Application
         """
 
-        if application_configuration is None:
-            application_configuration = AbstractApplicationConfig(
+        self._configuration: AbstractApplicationConfig = inject_or_constructor(
+            cls=AbstractApplicationConfig,
+            # pylint: disable=unnecessary-lambda
+            constructor_callable=lambda: AbstractApplicationConfig(
                 **YamlFileReader(
                     get_path_file_in_package("application.yaml", application_package),
                     yaml_base_key="application",
                     use_environment_injection=True,
                 ).read()
-            )
+            ),
+        )
 
         self._application_package: str = application_package
-        self._environment: Environment = application_configuration.environment
+        self._environment: Environment = self._configuration.environment
 
         # Initialize the AbstractPluginsApplication
         AbstractPluginsApplication.__init__(self=self)

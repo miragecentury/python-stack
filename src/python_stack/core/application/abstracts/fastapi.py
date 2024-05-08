@@ -1,3 +1,7 @@
+"""
+Provides an abstract class for a FastAPI application.
+"""
+
 from abc import ABC, abstractmethod
 from fastapi import FastAPI
 import uvicorn
@@ -5,6 +9,11 @@ from starlette.types import Receive, Scope, Send
 
 
 class AbstractFastApiApplication(ABC):
+    """
+    Provides an abstract class for a FastAPI application.
+    Encapsulates the FastAPI application and provides automatic configuration and
+    integration.
+    """
 
     # Server Constants
     DEFAULT_PORT: int = 8080

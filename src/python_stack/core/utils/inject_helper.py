@@ -34,7 +34,7 @@ def inject_depends(cls: type) -> Any:
 
 
 def inject_or_constructor(
-    cls: type, constructor_collable: Callable[[None], Any]
+    cls: type, constructor_callable: Callable[[None], Any]
 ) -> Any:
     """
     Return the instance of the class if it exists in the inject library,
@@ -51,7 +51,7 @@ def inject_or_constructor(
     try:
         return inject.instance(cls)
     except inject.InjectorException:
-        return constructor_collable()
+        return constructor_callable()
 
 
 def inject_or_none(cls: type) -> Any | None:
