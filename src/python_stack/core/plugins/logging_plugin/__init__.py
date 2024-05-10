@@ -1,0 +1,72 @@
+"""
+This module is the entry point for the logging plugin.
+"""
+
+import logging
+from typing import TYPE_CHECKING, Callable
+from os import getenv
+from inject import Binder
+
+
+from python_stack.core.application.abstracts.plugins import PluginPriorityEnum
+from python_stack.core.application.enums import Environment
+
+from .configures import configure_logging
+
+PLUGIN_NAME: str = "logging_plugin"
+PLUGIN_PRIORITY: PluginPriorityEnum = PluginPriorityEnum.IMMEDIATE
+
+if TYPE_CHECKING:
+    from python_stack.core.application import AbstractApplication
+
+
+def load(application: "AbstractApplication") -> Callable[[Binder], None] | None:
+    """
+    Load the logging plugin.
+
+    This method is called when the plugin is loaded.
+    """
+
+    # Define the configuration method base on the environment, and environment variables
+    _use_json_logging = False
+    match (application.get_environment()):
+        case Environment.DEVELOPMENT:
+            _use_json_logging = False
+            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.DEBUG))
+        case Environment.TESTING:
+            _use_json_logging = False
+            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
+        case Environment.STAGING:
+            _use_json_logging = True
+            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
+        case Environment.PRODUCTION:
+            _use_json_logging = True
+            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
+        case _:
+            _use_json_logging = False
+            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
+
+    configure_logging(
+        json_logs=_use_json_logging,
+        log_level=logging.getLevelNamesMapping()[_log_level],
+    )
+
+    return None
+
+
+def on_startup() -> None:
+    """
+    Execute code when the application starts.
+
+    This method is called when the application starts.
+    """
+    pass
+
+
+def on_shutdown() -> None:
+    """
+    Execute code when the application stops.
+
+    This method is called when the application stops.
+    """
+    pass

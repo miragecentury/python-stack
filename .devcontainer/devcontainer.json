@@ -15,6 +15,9 @@
     "ghcr.io/devcontainers-contrib/features/poetry:2": {},
     "ghcr.io/devcontainers-contrib/features/cz-cli:1": {}
   },
+  "remoteEnv": {
+    "PATH": "./src:./tests:${containerEnv:PATH}"
+  },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
     8080,

@@ -48,7 +48,8 @@ class AbstractApplication(
     )
 
     plugins_default: list[PluginProtocol | str] = [
-        "python_stack.core.plugins.opentelemetry_plugin"
+        "python_stack.core.plugins.opentelemetry_plugin",
+        "python_stack.core.plugins.logging_plugin"
     ]
 
     def _configure_inject(self, binder: inject.Binder) -> None:
