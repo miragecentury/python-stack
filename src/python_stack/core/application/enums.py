@@ -2,7 +2,7 @@
 Provides the Environment enum class.
 """
 
-from enum import StrEnum
+from enum import StrEnum, auto
 
 
 class Environment(StrEnum):
@@ -20,7 +20,7 @@ class Environment(StrEnum):
     Production: The application is running in a production environment.
     """
 
-    DEVELOPMENT = "development"
-    TESTING = "testing"
-    STAGING = "staging"
-    PRODUCTION = "production"
+    DEVELOPMENT = auto()
+    TESTING = auto()
+    STAGING = auto()
+    PRODUCTION = auto()

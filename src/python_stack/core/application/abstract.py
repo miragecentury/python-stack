@@ -66,7 +66,7 @@ class AbstractApplication(
         super()._configure_inject(binder=binder)
 
         if self._inject_override_binder is not None:
-            binder.install(self._inject_override_binder)
+            binder.install(config=self._inject_override_binder)
 
     def __init_inject__(
         self,
@@ -110,7 +110,9 @@ class AbstractApplication(
             # pylint: disable=unnecessary-lambda
             constructor_callable=lambda: AbstractApplicationConfig(
                 **YamlFileReader(
-                    get_path_file_in_package("application.yaml", application_package),
+                    file_path=get_path_file_in_package(
+                        filename="application.yaml", package=application_package
+                    ),
                     yaml_base_key="application",
                     use_environment_injection=True,
                 ).read()
