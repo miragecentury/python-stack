@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  application:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    ports:
+      - 8080
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    networks:
+      - devcontainer

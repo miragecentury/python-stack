@@ -159,4 +159,14 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# Coverage
 coverage.lcov
+
+#  NPM tools
+node_modules
+package.json
+package-lock.json
+
+# Data Mount
+data/*
+!data/.gitkeep
