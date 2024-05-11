@@ -69,3 +69,12 @@ class ApplicationBasicAbstract(ABC):
             str: The application package.
         """
         return self._application_package
+
+    def get_configuration(self) -> AbstractApplicationConfig:
+        """
+        Gets the configuration of the application.
+
+        Returns:
+            AbstractApplicationConfig: The configuration of the application.
+        """
+        return self._configuration

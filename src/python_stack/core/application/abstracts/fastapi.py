@@ -67,6 +67,9 @@ class AbstractFastApiApplication(ApplicationBasicAbstractProtocol, ABC):
             case _:
                 _access_log = True
 
+        # TODO: Add support for SSL
+        # TODO: Add support for timeouts
+
         return uvicorn.Config(
             app=self._fastapi_app,
             host=host,

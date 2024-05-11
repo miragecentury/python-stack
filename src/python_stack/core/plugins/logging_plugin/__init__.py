@@ -2,11 +2,9 @@
 This module is the entry point for the logging plugin.
 """
 
-import logging
 from typing import TYPE_CHECKING, Callable
-from os import getenv
-from inject import Binder
 
+from inject import Binder
 
 from python_stack.core.application.abstracts.plugins import PluginPriorityEnum
 from python_stack.core.application.enums import Environment
@@ -28,27 +26,10 @@ def load(application: "AbstractApplication") -> Callable[[Binder], None] | None:
     """
 
     # Define the configuration method base on the environment, and environment variables
-    _use_json_logging = False
-    match (application.get_environment()):
-        case Environment.DEVELOPMENT:
-            _use_json_logging = False
-            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.DEBUG))
-        case Environment.TESTING:
-            _use_json_logging = False
-            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
-        case Environment.STAGING:
-            _use_json_logging = True
-            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
-        case Environment.PRODUCTION:
-            _use_json_logging = True
-            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
-        case _:
-            _use_json_logging = False
-            _log_level = getenv("LOG_LEVEL", logging.getLevelName(logging.INFO))
 
     configure_logging(
-        json_logs=_use_json_logging,
-        log_level=logging.getLevelNamesMapping()[_log_level],
+        json_logs=application.get_configuration().log_use_json,
+        log_level=application.get_configuration().log_level,
     )
 
     return None
