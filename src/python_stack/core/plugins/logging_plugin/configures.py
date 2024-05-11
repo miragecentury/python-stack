@@ -7,8 +7,9 @@ import sys
 
 import structlog
 from structlog.typing import Processor
+
+from .filters import StderrFilter, StdoutFilter
 from .utils import add_open_telemetry_spans, add_worker_pid, rename_event_key
-from .filters import StdoutFilter, StderrFilter
 
 
 def _clean_previous_handlers():
