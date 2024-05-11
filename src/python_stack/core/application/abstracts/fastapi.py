@@ -3,12 +3,17 @@ Provides an abstract class for a FastAPI application.
 """
 
 from abc import ABC, abstractmethod
-from fastapi import FastAPI
+
 import uvicorn
+from fastapi import FastAPI
 from starlette.types import Receive, Scope, Send
 
+from python_stack.core.application.enums import Environment
 
-class AbstractFastApiApplication(ABC):
+from . import ApplicationBasicAbstractProtocol
+
+
+class AbstractFastApiApplication(ApplicationBasicAbstractProtocol, ABC):
     """
     Provides an abstract class for a FastAPI application.
     Encapsulates the FastAPI application and provides automatic configuration and
@@ -32,7 +37,7 @@ class AbstractFastApiApplication(ABC):
         """
         Initializes the Abstract FastAPI application.
         """
-
+        super().__init__()
         self._fastapi_app: FastAPI = None
 
     def get_fast_api(self) -> FastAPI:
@@ -55,11 +60,20 @@ class AbstractFastApiApplication(ABC):
         Returns:
             A uvicorn configuration object.
         """
+
+        match (self.get_environment()):
+            case Environment.PRODUCTION:
+                _access_log = False
+            case _:
+                _access_log = True
+
         return uvicorn.Config(
             app=self._fastapi_app,
             host=host,
             port=port,
             loop="asyncio",
+            log_config=None,
+            access_log=_access_log,
         )
 
     @abstractmethod
@@ -121,3 +135,12 @@ class AbstractFastApiApplication(ABC):
         proxies to the FastAPI application.
         """
         await self._fastapi_app(scope, receive, send)
+
+    def get_version(self) -> str:
+        """
+        Gets the version of the application.
+
+        Returns:
+            str: The version of the application.
+        """
+        return self._version

@@ -7,12 +7,7 @@ from typing import Callable
 import fastapi
 import inject
 
-
-from python_stack.core.application.config import AbstractApplicationConfig
-from python_stack.core.application.enums import Environment
-
 from ..api.monitored import api_v1_monitored, api_v2_monitored
-from ..utils.importlib import get_path_file_in_package
 from ..utils.monitored import (
     AbstractHealthMonitored,
     AbstractReadinessMonitored,
@@ -21,17 +16,17 @@ from ..utils.monitored import (
     MonitorResourceTypeEnum,
     ReadinessStatusEnum,
 )
-from ..utils.yaml_reader import YamlFileReader
-from ..utils.inject_helper import inject_or_constructor
+from .abstracts import ApplicationBasicAbstract
+from .abstracts.fastapi import AbstractFastApiApplication
 from .abstracts.plugins import (
     AbstractPluginsApplication,
     PluginPriorityEnum,
     PluginProtocol,
 )
-from .abstracts.fastapi import AbstractFastApiApplication
 
 
 class AbstractApplication(
+    ApplicationBasicAbstract,
     AbstractHealthMonitored,
     AbstractReadinessMonitored,
     AbstractPluginsApplication,
@@ -49,7 +44,7 @@ class AbstractApplication(
 
     plugins_default: list[PluginProtocol | str] = [
         "python_stack.core.plugins.opentelemetry_plugin",
-        "python_stack.core.plugins.logging_plugin"
+        "python_stack.core.plugins.logging_plugin",
     ]
 
     def _configure_inject(self, binder: inject.Binder) -> None:
@@ -105,23 +100,10 @@ class AbstractApplication(
         """
         Initializes the Application
         """
-
-        self._configuration: AbstractApplicationConfig = inject_or_constructor(
-            cls=AbstractApplicationConfig,
-            # pylint: disable=unnecessary-lambda
-            constructor_callable=lambda: AbstractApplicationConfig(
-                **YamlFileReader(
-                    file_path=get_path_file_in_package(
-                        filename="application.yaml", package=application_package
-                    ),
-                    yaml_base_key="application",
-                    use_environment_injection=True,
-                ).read()
-            ),
+        # Initialize the ApplicationBasicAbstract
+        ApplicationBasicAbstract.__init__(
+            self=self, application_package=application_package
         )
-
-        self._application_package: str = application_package
-        self._environment: Environment = self._configuration.environment
 
         # Initialize the AbstractPluginsApplication
         AbstractPluginsApplication.__init__(self=self)
@@ -165,30 +147,3 @@ class AbstractApplication(
         )
         # Set the health status to healthy
         self.change_health_status(HealthStatusEnum.HEALTHY)
-
-    def get_version(self) -> str:
-        """
-        Gets the version of the application.
-
-        Returns:
-            str: The version of the application.
-        """
-        return self._version
-
-    def get_environment(self) -> Environment:
-        """
-        Gets the environment of the application.
-
-        Returns:
-            str: The environment of the application.
-        """
-        return self._environment
-
-    def get_application_package(self) -> str:
-        """
-        Gets the application package.
-
-        Returns:
-            str: The application package.
-        """
-        return self._application_package
