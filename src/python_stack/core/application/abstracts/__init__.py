@@ -12,7 +12,7 @@ from python_stack.core.utils.inject_helper import inject_or_constructor
 from python_stack.core.utils.yaml_reader import YamlFileReader
 
 
-class ApplicationBasicAbstractProtocol(Protocol):
+class AbstractBaseApplicationProtocol(Protocol):
     """
     Provides an Interface for a basic application.
     """
@@ -25,8 +25,24 @@ class ApplicationBasicAbstractProtocol(Protocol):
             str: The environment of the application.
         """
 
+    def get_application_package(self) -> str:
+        """
+        Gets the application package.
 
-class ApplicationBasicAbstract(ABC):
+        Returns:
+            str: The application package.
+        """
+
+    def get_configuration(self) -> AbstractApplicationConfig:
+        """
+        Gets the configuration of the application.
+
+        Returns:
+            AbstractApplicationConfig: The configuration of the application.
+        """
+
+
+class AbstractBaseApplication(ABC):
     """
     Provides an abstract class for a basic
     """

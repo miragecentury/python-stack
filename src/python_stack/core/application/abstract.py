@@ -16,7 +16,7 @@ from ..utils.monitored import (
     MonitorResourceTypeEnum,
     ReadinessStatusEnum,
 )
-from .abstracts import ApplicationBasicAbstract
+from .abstracts import AbstractBaseApplication
 from .abstracts.fastapi import AbstractFastApiApplication
 from .abstracts.plugins import (
     AbstractPluginsApplication,
@@ -26,7 +26,7 @@ from .abstracts.plugins import (
 
 
 class AbstractApplication(
-    ApplicationBasicAbstract,
+    AbstractBaseApplication,
     AbstractHealthMonitored,
     AbstractReadinessMonitored,
     AbstractPluginsApplication,
@@ -101,7 +101,7 @@ class AbstractApplication(
         Initializes the Application
         """
         # Initialize the ApplicationBasicAbstract
-        ApplicationBasicAbstract.__init__(
+        AbstractBaseApplication.__init__(
             self=self, application_package=application_package
         )
 

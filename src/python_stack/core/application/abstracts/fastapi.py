@@ -10,10 +10,10 @@ from starlette.types import Receive, Scope, Send
 
 from python_stack.core.application.enums import Environment
 
-from . import ApplicationBasicAbstractProtocol
+from . import AbstractBaseApplicationProtocol
 
 
-class AbstractFastApiApplication(ApplicationBasicAbstractProtocol, ABC):
+class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
     """
     Provides an abstract class for a FastAPI application.
     Encapsulates the FastAPI application and provides automatic configuration and
