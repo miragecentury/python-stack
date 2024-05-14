@@ -8,7 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# build/
 develop-eggs/
 dist/
 downloads/
@@ -170,3 +170,7 @@ package-lock.json
 # Data Mount
 data/*
 !data/.gitkeep
+
+# Result for build
+build/*
+!build/.gitkeep

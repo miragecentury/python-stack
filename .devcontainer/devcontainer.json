@@ -41,6 +41,7 @@
         "GitHub.copilot-chat",
         "ms-azuretools.vscode-docker",
         "mongodb.mongodb-vscode",
+        "timonwong.shellcheck"
       ]
     }
   },

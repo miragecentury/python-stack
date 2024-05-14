@@ -1,0 +1,29 @@
+openapi: 3.1.0
+info:
+  title: TODO-REPLACE-PYTHON-STACK-PROJECT-NAME
+  version: 1.0.0
+  description: This is a sample server for a pet store.
+  termsOfService: http://example.com/terms/
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  contact:
+    name: TODO-REPLACE-PYTHON-STACK-PROJECT-NAME - Support
+    url: http://www.example.com/support
+    email: support@example.com
+paths:
+  /api/v1/monitored/health:
+    $ref: ./api/v1/monitored/health.openapi.yml
+  /api/v1/monitored/ready:
+    $ref: ./api/v1/monitored/ready.openapi.yml
+servers:
+  - url: https://TODO-REPLACE-PYTHON-STACK-PROJECT-URL:443
+    description: Production server
+  - url: http://localhost:8080
+    description: Development server
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
