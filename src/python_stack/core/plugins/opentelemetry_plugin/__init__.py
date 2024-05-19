@@ -25,7 +25,7 @@ def load(application: "AbstractApplication") -> Callable[[Binder], None]:
     This method is called when the plugin is loaded.
     """
     _manager = OpenTelemetryManagerFactory(application=application).build()
-    _manager.instrument_fastapi(application.get_fast_api())
+    _manager.instrument_fastapi(application.get_fastapi())
     return _manager.inject_configure
 
 

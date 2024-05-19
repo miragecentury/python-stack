@@ -40,7 +40,7 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
         super().__init__()
         self._fastapi_app: FastAPI = None
 
-    def get_fast_api(self) -> FastAPI:
+    def get_fastapi(self) -> FastAPI:
         """
         Returns the FastAPI application.
         """

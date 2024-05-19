@@ -56,7 +56,7 @@ class AbstractApplication(
         """
         self._inject_binder = binder
         binder.bind(cls=AbstractApplication, instance=self)
-        binder.bind(cls=fastapi.FastAPI, instance=self.get_fast_api())
+        binder.bind(cls=fastapi.FastAPI, instance=self.get_fastapi())
         binder.bind(cls=MonitoredService, instance=self._monitored_service)
         # Call the configure method for each plugin
         super()._configure_inject(binder=binder)
@@ -114,8 +114,8 @@ class AbstractApplication(
         AbstractFastApiApplication.__init__(self=self)
         self.__init_fastapi__(fastapi_app=fastapi_app)
         # Add the monitored api routers
-        self.get_fast_api().include_router(api_v1_monitored)
-        self.get_fast_api().include_router(api_v2_monitored)
+        self.get_fastapi().include_router(api_v1_monitored)
+        self.get_fastapi().include_router(api_v2_monitored)
 
         # Initialize the MonitoredService
         self._monitored_service = MonitoredService()
