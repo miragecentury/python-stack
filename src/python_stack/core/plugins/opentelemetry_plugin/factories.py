@@ -6,11 +6,10 @@ from typing import Callable, Tuple
 
 import fastapi
 import inject
-
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import (
     MetricExporter,
@@ -33,13 +32,12 @@ from opentelemetry.sdk.trace.export import (
     SpanProcessor,
 )
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
-
 from opentelemetry.trace import set_tracer_provider
 
 from python_stack.core.application.abstract import AbstractApplication
 from python_stack.core.utils.importlib import get_path_file_in_package
-from python_stack.core.utils.yaml_reader import YamlFileReader
 from python_stack.core.utils.inject_helper import inject_or_constructor
+from python_stack.core.utils.yaml_reader import YamlFileReader
 
 from .configs import OpenTelemetryConfiguration
 
@@ -79,8 +77,15 @@ class OpenTelemetryManager:
         """
         Instrument FastAPI with OpenTelemetry.
         """
+        if len(self._tracer_provider) == 0:
+            return
 
-        FastAPIInstrumentor().instrument_app(app)
+        # Get the default Tracer Provider
+        _default_tracer_provider: TracerProvider = self._tracer_provider[0]
+
+        FastAPIInstrumentor().instrument_app(
+            app=app, tracer_provider=_default_tracer_provider
+        )
 
     def inject_configure(self, binder: inject.Binder) -> None:
         """
@@ -245,7 +250,9 @@ class OpenTelemetryManagerFactory:
         Returns:
             OpenTelemetryManager: The OpenTelemetry Manager.
         """
-        _resource = self.build_opentelemetry_resource(application=self._application)
+        _resource: Resource = self.build_opentelemetry_resource(
+            application=self._application
+        )
         _span_processor, _span_exporter, _tracer_provider = self.build_trace_stack(
             resource=_resource,
             configuration=self._opentelemetry_configuration,
