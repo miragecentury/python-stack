@@ -54,7 +54,6 @@ class AbstractApplication(
         Args:
             binder (inject.Binder): The dependency injection container.
         """
-        self._inject_binder = binder
         binder.bind(cls=AbstractApplication, instance=self)
         binder.bind(cls=fastapi.FastAPI, instance=self.get_fastapi())
         binder.bind(cls=MonitoredService, instance=self._monitored_service)
@@ -129,7 +128,6 @@ class AbstractApplication(
         self._inject_override_binder: Callable[[inject.Binder], None] = (
             inject_override_binder
         )
-        self._inject_binder: inject.Binder | None = None
         self._injector: inject.Injector = self.__init_inject__(
             inject_allow_override=inject_allow_override
         )
