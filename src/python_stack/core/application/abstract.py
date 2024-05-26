@@ -91,7 +91,6 @@ class AbstractApplication(
 
     def __init__(
         self,
-        application_package: str,
         fastapi_app: fastapi.FastAPI | None = None,
         inject_allow_override: bool = False,
         inject_override_binder: Callable[[inject.Binder], None] = None,
@@ -101,9 +100,7 @@ class AbstractApplication(
         Initializes the Application
         """
         # Initialize the ApplicationBasicAbstract
-        AbstractBaseApplication.__init__(
-            self=self, application_package=application_package
-        )
+        AbstractBaseApplication.__init__(self=self)
 
         # Initialize the AbstractPluginsApplication
         AbstractPluginsApplication.__init__(self=self)

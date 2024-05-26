@@ -15,6 +15,7 @@ class Application(AbstractApplication):
     Example Application class for the Python Stack.
     """
 
+    APPLICATION_PACKAGE = __package__
     _version = "0.1.0"
     _title = "Python Stack Example"
     _description = "Example Python Stack Application"
@@ -29,7 +30,6 @@ class Application(AbstractApplication):
         """
         super().__init__(
             fastapi_app=fastapi_app,
-            application_package=__package__,
             inject_override_binder=inject_override_binder,
         )
 

@@ -51,7 +51,6 @@ class AbstractBaseApplication(ABC):
 
     def __init__(
         self,
-        application_package: str,
     ) -> None:
 
         assert (
@@ -64,7 +63,8 @@ class AbstractBaseApplication(ABC):
             constructor_callable=lambda: AbstractApplicationConfig(
                 **YamlFileReader(
                     file_path=get_path_file_in_package(
-                        filename="application.yaml", package=application_package
+                        filename="application.yaml",
+                        package=self.get_application_package(),
                     ),
                     yaml_base_key="application",
                     use_environment_injection=True,

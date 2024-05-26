@@ -69,7 +69,6 @@ class TestCaseAbstract(ABC):
 
         # use_mode_test=True is used to allow the test to override injected value.
         _application = Application(
-            application_package=__package__,
             inject_allow_override=True,
             inject_override_binder=inject_override_binder_test,
         )
