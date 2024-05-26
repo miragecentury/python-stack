@@ -33,12 +33,42 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
     _title: str | None = None
     _description: str | None = None
 
-    def __init__(self):
+    def __init__(self, fastapi_app: FastAPI | None = None):
         """
-        Initializes the Abstract FastAPI application.
+        Initializes the FastAPI application, creating one if not provided.
+
+        Args:
+            fastapi_app (fastapi.FastAPI | None): The FastAPI application
+            injected or created.
+
+        Raises:
+            AssertionError: If the required class attributes are not set.
         """
-        super().__init__()
-        self._fastapi_app: FastAPI = None
+
+        # Ensure that the required class attributes are set by the subclass
+        assert self._version is not None, "Version is not set"
+        assert self._title is not None, "Name is not set"
+        assert self._description is not None, "Description is not set"
+
+        # Create a new FastAPI application if one is not provided
+        if fastapi_app is None:
+            self._fastapi_app = FastAPI(
+                title=self._title,
+                description=self._description,
+                version=self._version,
+            )
+        else:
+            self._fastapi_app: FastAPI = fastapi_app
+
+        # Register the startup and shutdown events
+        self._fastapi_app.add_event_handler(
+            event_type=self.FASTAPI_EVENT_STARTUP, func=self._on_startup
+        )
+        self._fastapi_app.add_event_handler(
+            event_type=self.FASTAPI_EVENT_SHUTDOWN, func=self._on_shutdown
+        )
+
+        print("FastAPI Application Initialized")
 
     def get_fastapi(self) -> FastAPI:
         """
@@ -94,43 +124,6 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
         Must be implemented by the subclass.
         """
         raise NotImplementedError("Method not implemented")
-
-    def __init_fastapi__(self, fastapi_app: FastAPI | None = None) -> None:
-        """
-        Initializes the FastAPI application, creating one if not provided.
-
-        Args:
-            fastapi_app (fastapi.FastAPI | None): The FastAPI application
-            injected or created.
-
-        Raises:
-            AssertionError: If the required class attributes are not set.
-        """
-
-        # Ensure that the required class attributes are set by the subclass
-        assert self._version is not None, "Version is not set"
-        assert self._title is not None, "Name is not set"
-        assert self._description is not None, "Description is not set"
-
-        # Create a new FastAPI application if one is not provided
-        if fastapi_app is None:
-            self._fastapi_app = FastAPI(
-                title=self._title,
-                description=self._description,
-                version=self._version,
-            )
-        else:
-            self._fastapi_app: FastAPI = fastapi_app
-
-        # Register the startup and shutdown events
-        self._fastapi_app.add_event_handler(
-            event_type=self.FASTAPI_EVENT_STARTUP, func=self._on_startup
-        )
-        self._fastapi_app.add_event_handler(
-            event_type=self.FASTAPI_EVENT_SHUTDOWN, func=self._on_shutdown
-        )
-
-        print("FastAPI Application Initialized")
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """

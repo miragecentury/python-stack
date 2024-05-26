@@ -107,12 +107,10 @@ class AbstractApplication(
 
         # Initialize the AbstractPluginsApplication
         AbstractPluginsApplication.__init__(self=self)
-
         self.load(priority=PluginPriorityEnum.IMMEDIATE)
 
         # Initialize the FastAPI application
-        AbstractFastApiApplication.__init__(self=self)
-        self.__init_fastapi__(fastapi_app=fastapi_app)
+        AbstractFastApiApplication.__init__(self=self, fastapi_app=fastapi_app)
         # Add the monitored api routers
         self.get_fastapi().include_router(api_v1_monitored)
         self.get_fastapi().include_router(api_v2_monitored)
