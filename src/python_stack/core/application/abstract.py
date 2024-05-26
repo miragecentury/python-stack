@@ -96,6 +96,7 @@ class AbstractApplication(
         fastapi_app: fastapi.FastAPI | None = None,
         inject_allow_override: bool = False,
         inject_override_binder: Callable[[inject.Binder], None] = None,
+        monitor_service: MonitoredService | None = None,
     ) -> None:
         """
         Initializes the Application
@@ -115,8 +116,11 @@ class AbstractApplication(
         self.get_fastapi().include_router(api_v1_monitored)
         self.get_fastapi().include_router(api_v2_monitored)
 
-        # Initialize the MonitoredService
-        self._monitored_service = MonitoredService()
+        # Inject or create the MonitoredService
+        if monitor_service is not None:
+            self._monitored_service: MonitoredService = monitor_service
+        else:
+            self._monitored_service: MonitoredService = MonitoredService()
 
         self.load(priority=PluginPriorityEnum.NORMAL)
         self.load(priority=PluginPriorityEnum.DELAYED)
