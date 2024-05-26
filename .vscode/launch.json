@@ -17,16 +17,13 @@
             "request": "launch",
             "args": [
                 "tests",
-                "--no-cov"
+                "-n=1",
             ],
             "justMyCode": false,
             "purpose": [
                 "debug-test",
-                "debug-in-terminal"
             ],
-            "env": {
-                "PYTEST_ADDOPTS": "--no-cov"
-            }
+            "console": "internalConsole",
         }
     ]
 }

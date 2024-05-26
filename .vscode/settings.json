@@ -18,6 +18,7 @@
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "python.testing.pytestArgs": [
         "--no-cov",
+        "--color=yes",
         "tests"
     ],
     "python.testing.unittestEnabled": false,

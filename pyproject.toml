@@ -43,7 +43,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = "tests/units -n auto --color=yes"
+addopts = "tests/units"
 filterwarnings = [
     "ignore::DeprecationWarning:reactivex",
     "ignore::DeprecationWarning:importlib",
