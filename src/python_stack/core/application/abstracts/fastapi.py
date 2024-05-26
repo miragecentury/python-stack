@@ -51,14 +51,11 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
         assert self._description is not None, "Description is not set"
 
         # Create a new FastAPI application if one is not provided
-        if fastapi_app is None:
-            self._fastapi_app = FastAPI(
-                title=self._title,
-                description=self._description,
-                version=self._version,
-            )
-        else:
-            self._fastapi_app: FastAPI = fastapi_app
+        self._fastapi_app: FastAPI = fastapi_app or FastAPI(
+            title=self._title,
+            description=self._description,
+            version=self._version,
+        )
 
         # Register the startup and shutdown events
         self._fastapi_app.add_event_handler(

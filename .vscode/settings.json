@@ -28,6 +28,13 @@
         "./src/",
         "./tests/"
     ],
+    "mypy-type-checker.path": [
+        "poetry",
+        "run",
+        "mypy"
+    ],
+    "mypy-type-checker.args": [],
+    "mypy-type-checker.reportingScope": "workspace",
     "python.envFile": "${workspaceFolder}/.env",
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,

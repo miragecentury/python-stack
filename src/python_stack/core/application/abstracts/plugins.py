@@ -72,24 +72,24 @@ class AbstractPluginsApplication(ABC):
         Check if the package are instances of PluginProtocol.
 
         Args:
-            plugins (set[PluginProtocol]): A set of plugins to be used
+            plugins (list[PluginProtocol]): A list of plugins to be used
             by the application.
 
         Raises:
-            TypeError: If a plugin in the set is not an instance of PluginProtocol.
+            TypeError: If a plugin in the list is not an instance of PluginProtocol.
         """
         for plugin in plugins:
             if not isinstance(plugin, PluginProtocol):
                 raise TypeError(f"Plugin {plugin} is not an instance of PluginProtocol")
 
     def _order_plugins_by_priority(
-        self, plugins: set[PluginProtocol]
+        self, plugins: list[PluginProtocol]
     ) -> dict[PluginPriorityEnum, list[PluginProtocol]]:
         """
         Order the plugins by priority.
 
         Args:
-            plugins (set[PluginProtocol]): A set of plugins to be used
+            plugins (list[PluginProtocol]): A list of plugins to be used
             by the application.
 
         Returns:
@@ -105,12 +105,12 @@ class AbstractPluginsApplication(ABC):
 
         return ordered_plugins
 
-    def __init__(self, plugins: set[PluginProtocol] | None = None) -> None:
+    def __init__(self, plugins: list[PluginProtocol] | None = None) -> None:
         """
         Constructor for the AbstractPluginsApplication class.
 
         Args:
-            plugins (set[PluginProtocol]): A set of plugins to be used
+            plugins (list[PluginProtocol]): A list of plugins to be used
             by the application.
 
         Raises:
