@@ -37,6 +37,7 @@ class TestCaseAbstract(ABC):
             Application class for testing.
             """
 
+            APPLICATION_PACKAGE: str | None = __package__
             _version = "1.0.0"
             _title = "Test Application"
             _description = "Application for testing."

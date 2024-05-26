@@ -10,7 +10,7 @@ from starlette.types import Receive, Scope, Send
 
 from python_stack.core.application.enums import Environment
 
-from . import AbstractBaseApplicationProtocol
+from .base import AbstractBaseApplicationProtocol
 
 
 class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
