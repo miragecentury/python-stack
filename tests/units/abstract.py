@@ -4,7 +4,7 @@ Provide an abstract class for unit tests.
 
 from abc import ABC
 from contextlib import contextmanager
-from typing import Callable, Iterator
+from typing import Callable, Generator
 
 import inject
 
@@ -24,10 +24,22 @@ class TestCaseAbstract(ABC):
     Abstract class for unit tests.
     """
 
+    _application_config: AbstractApplicationConfig = AbstractApplicationConfig(
+        server=AbstractApplicationConfigServer(
+            host="localhost",
+            port=8000,
+        ),
+        environment=Environment.TESTING,
+    )
+
+    _opentelemetry_config: OpenTelemetryConfiguration = OpenTelemetryConfiguration(
+        enabled=False
+    )
+
     @contextmanager
     def build_application(
         self, inject_override_binder: Callable[[inject.Binder], None] = None
-    ) -> Iterator[AbstractApplication]:
+    ) -> Generator[AbstractApplication, None, None]:
         """
         Provides an instance of the AbstractApplication class.
         """
@@ -42,23 +54,17 @@ class TestCaseAbstract(ABC):
             _title = "Test Application"
             _description = "Application for testing."
 
-        _application_config = AbstractApplicationConfig(
-            server=AbstractApplicationConfigServer(
-                host="localhost",
-                port=8000,
-            ),
-            environment=Environment.TESTING,
-        )
-
-        _opentelemetry_config = OpenTelemetryConfiguration(enabled=False)
-
         def inject_override_binder_test(binder: inject.Binder) -> None:
             """
             Overrides the parent method to configure the dependency injection container for
             the Application "Test".
             """
-            binder.bind(cls=OpenTelemetryConfiguration, instance=_opentelemetry_config)
-            binder.bind(cls=AbstractApplicationConfig, instance=_application_config)
+            binder.bind(
+                cls=OpenTelemetryConfiguration, instance=self._opentelemetry_config
+            )
+            binder.bind(
+                cls=AbstractApplicationConfig, instance=self._application_config
+            )
             if inject_override_binder is not None:
                 binder.install(inject_override_binder)
 
