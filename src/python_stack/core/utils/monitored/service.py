@@ -86,9 +86,12 @@ class MonitoredService:
     readiness_resolver: ReadinessStatusServiceResolver
 
     def __init__(self) -> None:
-        self._monitored_resources: Dict[str, MonitoredResource] = {}
-        self._health_status: HealthStatusEnum = HealthStatusEnum.UNKNOWN
-        self._readiness_status: ReadinessStatusEnum = ReadinessStatusEnum.UNKNOWN
+        self._monitored_resources: Dict[str, MonitoredResource]
+        self._monitored_resources = {}
+        self._health_status: HealthStatusEnum
+        self._health_status = HealthStatusEnum.UNKNOWN
+        self._readiness_status: ReadinessStatusEnum
+        self._readiness_resolver = ReadinessStatusEnum.UNKNOWN
 
     def get_health_status(self) -> HealthStatusEnum:
         """
@@ -106,8 +109,7 @@ class MonitoredService:
         """
         Calculate the health status based on the monitored resources.
         """
-
-        self._health_status: HealthStatusEnum = HealthStatusServiceResolver(
+        self._health_status = HealthStatusServiceResolver(
             _monitored_resources=self._monitored_resources
         ).resolve()
 
@@ -116,7 +118,7 @@ class MonitoredService:
         Calculate the readiness status based on the monitored resources.
         """
 
-        self._readiness_status: ReadinessStatusEnum = ReadinessStatusServiceResolver(
+        self._readiness_status = ReadinessStatusServiceResolver(
             _monitored_resources=self._monitored_resources
         ).resolve()
 

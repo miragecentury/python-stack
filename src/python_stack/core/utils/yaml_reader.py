@@ -147,14 +147,18 @@ class YamlFileReader:
 
         # Read the YAML file and filter the data with the base key
         try:
-            _yaml_data = self._read_yaml_file(file_path=self._file_path)
-            _yaml_data = self._filter_data_with_base_key(_yaml_data)
+            _yaml_data: dict = self._filter_data_with_base_key(
+                self._read_yaml_file(file_path=self._file_path)
+            )
         except (FileNotFoundError, ValueError, KeyError) as _e:
             raise UnableToReadYamlFileError(
                 file_path=self._file_path, message=str(_e)
             ) from _e
 
         if self._use_environment_injection:
-            _yaml_data = self._inject_environment_variables(_yaml_data)
-
-        return _yaml_data
+            _yaml_data_with_env_injected: dict | str | list = (
+                self._inject_environment_variables(_yaml_data)
+            )
+            return _yaml_data_with_env_injected
+        else:
+            return _yaml_data
