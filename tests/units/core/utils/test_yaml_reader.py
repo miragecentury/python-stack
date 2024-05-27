@@ -1,3 +1,7 @@
+"""
+Provides unit tests for the YamlFileReader class.
+"""
+
 from unittest.mock import mock_open, patch
 
 import pytest

@@ -4,8 +4,10 @@ Provides a class for reading YAML files and converting them to Pydantic models.
 
 import os
 import re
+from pathlib import Path
 
-from yaml import SafeLoader, load
+from fastapi.background import P
+from yaml import SafeLoader
 
 
 class UnableToReadYamlFileError(Exception):
@@ -13,7 +15,7 @@ class UnableToReadYamlFileError(Exception):
     Raised when there is an error reading a YAML file.
     """
 
-    def __init__(self, file_path: str, message: str) -> None:
+    def __init__(self, file_path: Path, message: str) -> None:
         """
         Initializes the exception.
 
@@ -33,7 +35,7 @@ class YamlFileReader:
 
     def __init__(
         self,
-        file_path: str,
+        file_path: Path,
         yaml_base_key: str | None = None,
         use_environment_injection: bool = True,
     ) -> None:
@@ -50,7 +52,7 @@ class YamlFileReader:
 
         # Store the file path and base key for YAML reading
         self._yaml_base_key: str | None = yaml_base_key
-        self._file_path: str = file_path
+        self._file_path: Path = file_path
 
         # Store whether to use environment injection
         self._use_environment_injection: bool = use_environment_injection
@@ -66,11 +68,11 @@ class YamlFileReader:
             KeyError: If the base key is not found in the YAML file.
         """
         if self._yaml_base_key is not None:
-            _keys = self._yaml_base_key.split(".")
-            _keys.reverse()
+            _keys: list[str] = self._yaml_base_key.split(".")
             while len(_keys) != 0:
                 try:
-                    _key = _keys.pop()
+                    # /!\ pop don't accept index as keyword argument
+                    _key = _keys.pop(0)
                     yaml_data = yaml_data[_key]
                 except KeyError as _e:
                     raise KeyError(
@@ -79,11 +81,11 @@ class YamlFileReader:
                     ) from _e
         return yaml_data
 
-    def _read_yaml_file(self, file_path: str) -> dict:
+    def _read_yaml_file(self, file_path: Path) -> dict:
         """
         Reads the YAML file and returns the data as a dictionary.
         Args:
-            file_path (str): The path to the YAML file.
+            file_path (Path): The path to the YAML file.
 
         Returns:
             dict: The data from the YAML file.
@@ -105,7 +107,9 @@ class YamlFileReader:
 
             return _yaml_data
 
-    def _inject_environment_variables(self, yaml_data: dict | str | list) -> dict:
+    def _inject_environment_variables(
+        self, yaml_data: dict | str | list
+    ) -> dict | str | list:
         """
         Injects environment variables into the YAML data recursively.
         Args:
@@ -132,7 +136,7 @@ class YamlFileReader:
 
         return yaml_data
 
-    def read(self) -> dict:
+    def read(self) -> dict | str | list:
         """
         Reads the YAML file and converts it to a Pydantic model
         with or without environment injection.
