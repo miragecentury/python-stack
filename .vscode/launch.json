@@ -19,6 +19,9 @@
                 "tests",
                 "-n=1",
             ],
+            "env": {
+                "PYTEST_ADDOPTS": "-n 1"
+            },
             "justMyCode": false,
             "purpose": [
                 "debug-test",
