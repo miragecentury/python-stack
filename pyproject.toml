@@ -28,6 +28,8 @@ structlog = "^24.1.0"
 [tool.poetry.group.test.dependencies]
 mypy = "^1.10.0"
 types-pyyaml = "^6.0.12.20240311"
+pylint = "^3.2.2"
+black = "^24.4.2"
 
 [tool.poetry.extras]
 
@@ -53,9 +55,13 @@ filterwarnings = [
 ]
 
 [tool.black]
-line-length = 88
+line-length = 80
+
 target-version = ['py311']
 
 [tool.mypy]
 python_version = "3.11"
 warn_unused_configs = true
+
+[tool.pylint]
+fail-under = 9.5

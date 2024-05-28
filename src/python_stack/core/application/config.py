@@ -71,11 +71,14 @@ class AbstractApplicationConfig(BaseModel):
         Validates and transforms the log use json.
         """
 
+        # If environment is set, ensure it is an Environment enum
         if "environment" in data:
             if not isinstance(data["environment"], Environment):
-                _env_name = str(data["environment"]).upper()
-                data["environment"] = Environment[_env_name]
+                data["environment"] = Environment[
+                    str(data["environment"]).upper()
+                ]
 
+        # If the log use json is not set, then set it based on the environment
         if "log_use_json" not in data:
             match (data["environment"]):
                 case Environment.DEVELOPMENT:

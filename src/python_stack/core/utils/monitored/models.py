@@ -17,7 +17,8 @@ from .enums import (
 @dataclass
 class MonitoredStatusUpdate:
     """
-    Represents a status update for a monitored resource exposed through an observable.
+    Represents a status update for a monitored resource exposed
+    through an observable.
     """
 
     identifier: str

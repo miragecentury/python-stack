@@ -23,7 +23,7 @@ class Application(AbstractApplication):
     def __init__(
         self,
         fastapi_app=None,
-        inject_override_binder: Callable[[inject.Binder], None] = None,
+        inject_override_binder: Callable[[inject.Binder], None] | None = None,
     ):
         """
         Initializes the Application
@@ -35,8 +35,8 @@ class Application(AbstractApplication):
 
     def _configure_inject(self, binder: Binder) -> None:
         """
-        Overrides the parent method to configure the dependency injection container for
-        the Application "Example".
+        Overrides the parent method to configure the dependency
+        injection container for the Application "Example".
         """
         super()._configure_inject(binder)
         binder.bind(Application, self)

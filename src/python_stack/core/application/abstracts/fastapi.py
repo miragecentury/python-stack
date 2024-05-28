@@ -16,8 +16,8 @@ from .base import AbstractBaseApplicationProtocol
 class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
     """
     Provides an abstract class for a FastAPI application.
-    Encapsulates the FastAPI application and provides automatic configuration and
-    integration.
+    Encapsulates the FastAPI application and provides automatic
+    configuration and integration.
     """
 
     # Server Constants
@@ -90,9 +90,9 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
 
         match (self.get_environment()):
             case Environment.PRODUCTION:
-                _access_log = False
+                access_log = False
             case _:
-                _access_log = True
+                access_log = True
 
         # TODO: Add support for SSL
         # TODO: Add support for timeouts
@@ -103,7 +103,7 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
             port=port,
             loop="asyncio",
             log_config=None,
-            access_log=_access_log,
+            access_log=access_log,
         )
 
     @abstractmethod
@@ -122,7 +122,9 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
         """
         raise NotImplementedError("Method not implemented")
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(
+        self, scope: Scope, receive: Receive, send: Send
+    ) -> None:
         """
         This method is called by the ASGI server and
         proxies to the FastAPI application.
@@ -136,4 +138,4 @@ class AbstractFastApiApplication(AbstractBaseApplicationProtocol, ABC):
         Returns:
             str: The version of the application.
         """
-        return self._version
+        return str(self._version)

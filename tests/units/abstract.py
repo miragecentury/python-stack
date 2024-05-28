@@ -32,8 +32,8 @@ class TestCaseAbstract(ABC):
         environment=Environment.TESTING,
     )
 
-    _opentelemetry_config: OpenTelemetryConfiguration = OpenTelemetryConfiguration(
-        enabled=False
+    _opentelemetry_config: OpenTelemetryConfiguration = (
+        OpenTelemetryConfiguration(enabled=False)
     )
 
     @contextmanager
@@ -61,7 +61,8 @@ class TestCaseAbstract(ABC):
             the Application "Test".
             """
             binder.bind(
-                cls=OpenTelemetryConfiguration, instance=self._opentelemetry_config
+                cls=OpenTelemetryConfiguration,
+                instance=self._opentelemetry_config,
             )
             binder.bind(
                 cls=AbstractApplicationConfig, instance=self._application_config

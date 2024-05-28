@@ -46,7 +46,7 @@
         "black"
     ],
     "editor.rulers": [
-        88
+        80
     ],
     "markiscodecoverage.searchCriteria": "build/coverage.lcov"
 }

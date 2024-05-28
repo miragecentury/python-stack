@@ -39,7 +39,9 @@ class TestYamlFileReader:
                 _data = yaml_reader.read()
 
                 _mock_exists.assert_called_once_with("file_path")
-                _mock_open.assert_called_once_with("file_path", "r", encoding="UTF-8")
+                _mock_open.assert_called_once_with(
+                    "file_path", "r", encoding="UTF-8"
+                )
 
                 assert _data == {yaml_test_key: yaml_test_value}
 
@@ -67,7 +69,9 @@ class TestYamlFileReader:
                 _data = yaml_reader.read()
 
                 _mock_exists.assert_called_once_with("file_path")
-                _mock_open.assert_called_once_with("file_path", "r", encoding="UTF-8")
+                _mock_open.assert_called_once_with(
+                    "file_path", "r", encoding="UTF-8"
+                )
 
                 assert _data == {yaml_test_key: yaml_test_value}
 
@@ -96,7 +100,9 @@ class TestYamlFileReader:
                 _data = yaml_reader.read()
 
                 _mock_exists.assert_called_once_with("file_path")
-                _mock_open.assert_called_once_with("file_path", "r", encoding="UTF-8")
+                _mock_open.assert_called_once_with(
+                    "file_path", "r", encoding="UTF-8"
+                )
 
                 assert _data == {yaml_test_key: yaml_test_value}
 
@@ -123,7 +129,9 @@ class TestYamlFileReader:
                 with pytest.raises(UnableToReadYamlFileError) as _e:
                     yaml_reader.read()
                 _mock_exists.assert_called_once_with("file_path")
-                _mock_open.assert_called_once_with("file_path", "r", encoding="UTF-8")
+                _mock_open.assert_called_once_with(
+                    "file_path", "r", encoding="UTF-8"
+                )
 
     def test_yaml_read_with_simple_env_value_to_inject(self):
         """
@@ -178,7 +186,9 @@ class TestYamlFileReader:
                 _data = yaml_reader.read()
 
                 _mock_exists.assert_called_once_with("file_path")
-                _mock_open.assert_called_once_with("file_path", "r", encoding="UTF-8")
+                _mock_open.assert_called_once_with(
+                    "file_path", "r", encoding="UTF-8"
+                )
 
                 assert _data == {yaml_test_key: yaml_test_value}
 
@@ -211,7 +221,9 @@ class TestYamlFileReader:
             ),
         ],
     )
-    def test_yaml_read_with_env_value_to_inject(self, data, env_mock, expected_result):
+    def test_yaml_read_with_env_value_to_inject(
+        self, data, env_mock, expected_result
+    ):
         """
         Tests reading a YAML file with an environment value to inject.
         """

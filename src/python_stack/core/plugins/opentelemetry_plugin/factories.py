@@ -1,17 +1,24 @@
 """
-
+Provides the OpenTelemetry Manager Factory.
 """
 
-from typing import Callable, Tuple
+from pathlib import Path
+from typing import Any, Callable, Tuple
 
 import fastapi
 import inject
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
+    OTLPMetricExporter,
+)
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+    OTLPSpanExporter,
+)
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.metrics import set_meter_provider
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import (
+    InMemoryMetricReader,
     MetricExporter,
     MetricReader,
     PeriodicExportingMetricReader,
@@ -31,7 +38,6 @@ from opentelemetry.sdk.trace.export import (
     SpanExporter,
     SpanProcessor,
 )
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from opentelemetry.trace import set_tracer_provider
 
 from python_stack.core.application.abstract import AbstractApplication
@@ -50,7 +56,8 @@ YAML_FILE_NAME = "application.yaml"
 class OpenTelemetryManager:
     """
     OpenTelemetry Manager.
-    OpenTelemetry Manager is responsible for managing the OpenTelemetry resources.
+    OpenTelemetry Manager is responsible for managing
+    the OpenTelemetry resources.
     """
 
     def __init__(
@@ -73,6 +80,11 @@ class OpenTelemetryManager:
             self._tracer_provider.append(tracer_provider)
             set_tracer_provider(tracer_provider)
 
+        self._meter_provider: list[MeterProvider] = []
+        if meter_provider is not None:
+            self._meter_provider.append(meter_provider)
+            set_meter_provider(meter_provider)
+
     def instrument_fastapi(self, app: fastapi.FastAPI) -> None:
         """
         Instrument FastAPI with OpenTelemetry.
@@ -81,10 +93,10 @@ class OpenTelemetryManager:
             return
 
         # Get the default Tracer Provider
-        _default_tracer_provider: TracerProvider = self._tracer_provider[0]
+        default_tracer_provider: TracerProvider = self._tracer_provider[0]
 
         FastAPIInstrumentor().instrument_app(
-            app=app, tracer_provider=_default_tracer_provider
+            app=app, tracer_provider=default_tracer_provider
         )
 
     def inject_configure(self, binder: inject.Binder) -> None:
@@ -115,9 +127,18 @@ class OpenTelemetryManager:
     def add_tracer_provider(self, tracer_provider: TracerProvider) -> None:
         """
         Add a Tracer Provider to the OpenTelemetry Manager.
-        (This is useful for adding multiple Tracer Providers like for dependencies)
+        (This is useful for adding multiple Tracer Providers
+        like for dependencies)
         """
         self._tracer_provider.append(tracer_provider)
+
+    def add_meter_provider(self, metric_provider: MeterProvider) -> None:
+        """
+        Add a Metric Provider to the OpenTelemetry Manager.
+        (This is useful for adding multiple Metric Providers
+        like for dependencies)
+        """
+        self._meter_provider.append(metric_provider)
 
 
 class OpenTelemetryManagerFactory:
@@ -133,13 +154,18 @@ class OpenTelemetryManagerFactory:
         Build the OpenTelemetry Config for the application.
 
         Returns:
-            OpenTelemetryConfiguration: The OpenTelemetry Config for the application.
+            OpenTelemetryConfiguration: The OpenTelemetry Config
+            for the application.
         """
 
         # Read the OpenTelemetry Configuration from the YAML file
         yaml_reader = YamlFileReader(
-            file_path=get_path_file_in_package(
-                YAML_FILE_NAME, application.get_application_package()
+            file_path=Path(
+                str(
+                    get_path_file_in_package(
+                        YAML_FILE_NAME, application.get_application_package()
+                    )
+                )
             ),
             yaml_base_key="opentelemetry",
             use_environment_injection=True,
@@ -149,7 +175,9 @@ class OpenTelemetryManagerFactory:
         return OpenTelemetryConfiguration(**opentelemetry_config_data)
 
     @classmethod
-    def build_opentelemetry_resource(cls, application: AbstractApplication) -> Resource:
+    def build_opentelemetry_resource(
+        cls, application: AbstractApplication
+    ) -> Resource:
         """
         Build the OpenTelemetry Resource for the application.
 
@@ -168,9 +196,62 @@ class OpenTelemetryManagerFactory:
                 DEPLOYMENT_ENVIRONMENT: application.get_environment().value,
                 TELEMETRY_SDK_LANGUAGE: TELEMETRY_SDK_LANGUAGE_PYTHON,
                 # Datadog specific attribute
-                RESOURCE_DATADOG_ENV_ATTRIBUTE: application.get_environment().value,
+                RESOURCE_DATADOG_ENV_ATTRIBUTE: (
+                    application.get_environment().value
+                ),
             }
         )
+
+    @classmethod
+    def build_meter_stack(
+        cls,
+        configuration: OpenTelemetryConfiguration,
+        resource: Resource,
+        metric_exporter: MetricExporter | None = None,
+    ) -> Tuple[
+        MetricReader | None, MetricExporter | None, MeterProvider | None
+    ]:
+        """
+        Build the Meter Stack.
+
+        Returns:
+            Tuple[MetricReader, MetricExporter, MeterProvider]: The Meter Stack.
+        """
+        metric_reader: MetricReader
+        if configuration.metrics_enabled:
+            if metric_exporter is None:
+                metric_exporter = inject_or_constructor(
+                    MetricExporter,
+                    lambda: OTLPMetricExporter(
+                        endpoint=configuration.collector_endpoint,
+                        insecure=configuration.collector_endpoint.startswith(
+                            "http://"
+                        ),
+                    ),
+                )
+
+            metric_reader = PeriodicExportingMetricReader(
+                exporter=metric_exporter,
+                export_interval_millis=configuration.metrics_interval,
+            )
+
+            prometheus_metric_reader: PrometheusMetricReader = (
+                PrometheusMetricReader()
+            )
+
+            meter_provider = MeterProvider(
+                resource=resource,
+                metric_readers=[metric_reader, prometheus_metric_reader],
+            )
+
+        else:
+            metric_exporter = None
+            metric_reader = InMemoryMetricReader()
+            meter_provider = MeterProvider(
+                resource=resource, metric_readers=[metric_reader]
+            )
+
+        return metric_reader, metric_exporter, meter_provider
 
     @classmethod
     def build_trace_stack(
@@ -199,11 +280,14 @@ class OpenTelemetryManagerFactory:
                     SpanExporter,
                     lambda: OTLPSpanExporter(
                         endpoint=configuration.collector_endpoint,
-                        insecure=configuration.collector_endpoint.startswith("http://"),
+                        insecure=configuration.collector_endpoint.startswith(
+                            "http://"
+                        ),
                     ),
                 )
             # TODO: Add support for max_queue_size, max_export_batch_size,
             # TODO: Add support scheduled_delay, and export_timeout
+            span_processor: SpanProcessor | None
             if configuration.spans_processor_batch:
                 span_processor = BatchSpanProcessor(span_exporter)
             else:
@@ -225,18 +309,24 @@ class OpenTelemetryManagerFactory:
 
         Args:
             application (AbstractApplication): The application instance.
-            configuration (OpenTelemetryConfiguration): The OpenTelemetry Configuration.
+            configuration (OpenTelemetryConfiguration): The OpenTelemetry
+            Configuration.
         """
 
         self._application: AbstractApplication = application
 
         # Build the OpenTelemetry Configuration
         # It's the only object that must be built in constructor
-        # to prevent the application from starting if the configuration is invalid.
+        # to prevent the application from starting if the configuration
+        # is invalid.
+        self._opentelemetry_configuration: OpenTelemetryConfiguration
         if configuration is None:
+            contructor_lambda: Callable[[], Any] = (
+                lambda: self.build_opentelemetry_config(application=application)
+            )
             self._opentelemetry_configuration = inject_or_constructor(
                 OpenTelemetryConfiguration,
-                lambda: self.build_opentelemetry_config(application=application),
+                contructor_lambda,
             )
         else:
             self._opentelemetry_configuration = configuration
@@ -250,17 +340,23 @@ class OpenTelemetryManagerFactory:
         Returns:
             OpenTelemetryManager: The OpenTelemetry Manager.
         """
-        _resource: Resource = self.build_opentelemetry_resource(
+        resource: Resource = self.build_opentelemetry_resource(
             application=self._application
         )
-        _span_processor, _span_exporter, _tracer_provider = self.build_trace_stack(
-            resource=_resource,
+        span_processor, span_exporter, tracer_provider = self.build_trace_stack(
+            resource=resource,
             configuration=self._opentelemetry_configuration,
         )
+
+        self.build_meter_stack(
+            configuration=self._opentelemetry_configuration,
+            resource=resource,
+        )
+
         return OpenTelemetryManager(
             configuration=self._opentelemetry_configuration,
-            resource=_resource,
-            span_processor=_span_processor,
-            span_exporter=_span_exporter,
-            tracer_provider=_tracer_provider,
+            resource=resource,
+            span_processor=span_processor,
+            span_exporter=span_exporter,
+            tracer_provider=tracer_provider,
         )

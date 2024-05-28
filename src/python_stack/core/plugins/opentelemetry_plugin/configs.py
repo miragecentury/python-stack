@@ -54,6 +54,13 @@ class OpenTelemetryConfiguration(BaseModel):
         description="The propagation mode for OpenTelemetry.",
     )
 
+    metrics_interval: float = Field(
+        default=2000,
+        description=(
+            "The interval in millisecond to send metrics to the collector."
+        ),
+    )
+
     collector_endpoint: str = Field(
         default=DEFAULT_COLLECTOR_ENDPOINT,
         description="The URL of the OpenTelemetry collector.",
@@ -62,12 +69,14 @@ class OpenTelemetryConfiguration(BaseModel):
     @model_validator(mode="after")
     def validate_enabled_consistency(self) -> Self:
         """
-        Validate that the enabled flag is consistent with the metrics and traces flags.
+        Validate that the enabled flag is consistent
+        with the metrics and traces flags.
         """
         # If metrics or traces are enabled, OpenTelemetry must be enabled.
         if (self.metrics_enabled or self.spans_enabled) and not self.enabled:
             raise ValueError(
-                "Metrics and traces can only be enabled if OpenTelemetry is enabled."
+                "Metrics and traces can only be enabled "
+                + "if OpenTelemetry is enabled."
             )
 
         # If OpenTelemetry is enabled, either metrics or traces must be enabled.
@@ -79,17 +88,29 @@ class OpenTelemetryConfiguration(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def validate_metrics_interval_consistency(self) -> Self:
+        """
+        Validate that the metrics interval is greater than 0.
+        """
+        if self.metrics_interval <= 0:
+            raise ValueError("Metrics interval must be greater than 0.")
+
+        return self
+
+    @model_validator(mode="after")
     def validate_propagation_mode_consistency(self) -> Self:
         """
         Validate that the propagation mode is consistent with the enabled flag.
         """
         # Propagation mode can only be enabled if OpenTelemetry is enabled.
         if (
-            self.propagation_mode != OpenTelemetryConfigurationPropagationMode.DISABLED
+            self.propagation_mode
+            != OpenTelemetryConfigurationPropagationMode.DISABLED
             and not self.enabled
         ):
             raise ValueError(
-                "Propagation mode can only be enabled if OpenTelemetry is enabled."
+                "Propagation mode can only be enabled "
+                + "if OpenTelemetry is enabled."
             )
 
         return self

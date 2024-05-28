@@ -58,7 +58,9 @@ class MonitoredHealthModel(BaseModel):
 )
 def get_health(
     response: Response,
-    monitored_service: Annotated[MonitoredService, inject_depends(MonitoredService)],
+    monitored_service: Annotated[
+        MonitoredService, inject_depends(MonitoredService)
+    ],
 ) -> MonitoredHealthModel:
     """
     Get the health status of the service.
@@ -70,8 +72,10 @@ def get_health(
     Returns:
         MonitoredHealthResponse: The health status of the service.
     """
-    _response = MonitoredHealthModel(health=monitored_service.get_health_status())
-    match (_response.health):
+    monitored_health_model = MonitoredHealthModel(
+        health=monitored_service.get_health_status()
+    )
+    match (monitored_health_model.health):
         case HealthStatusEnum.HEALTHY:
             # The health status is healthy.
             response.status_code = HTTPStatus.OK
@@ -79,10 +83,11 @@ def get_health(
             # The health status is unhealthy.
             response.status_code = HTTPStatus.SERVICE_UNAVAILABLE
         case _:
-            # This is the default case, which is used when the health status is unknown.
+            # This is the default case, which is used when the health
+            # status is unknown.
             # By convention, the health status is set to unknown
             # when the health check fails.
             response.status_code = HTTPStatus.SERVICE_UNAVAILABLE
-            _response.health = HealthStatusEnum.UNKNOWN
+            monitored_health_model.health = HealthStatusEnum.UNKNOWN
 
-    return _response
+    return monitored_health_model

@@ -60,4 +60,5 @@ def get_example(example_id: UUID):
     """
     Get an example.
     """
+    del example_id
     return {"example": "example"}

@@ -21,11 +21,11 @@ def get_path_file_in_package(filename: str, package: str) -> Traversable:
 
     """
     try:
-        _path = files(package).joinpath(filename)
-    except FileNotFoundError as _e:
+        path: Traversable = files(package).joinpath(filename)
+    except FileNotFoundError as exception:
         raise FileNotFoundError(
             f"File {filename} not found in package {package}"
-        ) from _e
-    except ImportError as _e:
-        raise ImportError(f"Package {package} not found") from _e
-    return _path
+        ) from exception
+    except ImportError as exception:
+        raise ImportError(f"Package {package} not found") from exception
+    return path

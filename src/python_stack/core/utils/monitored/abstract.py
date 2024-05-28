@@ -53,7 +53,8 @@ class AbstractHealthMonitored(AbstractMonitored):
         AbstractMonitored.__init__(self=self)
         # Add the health monitor type to the monitor type subjects
         self._monitor_type_subjects.add(MonitorTypeEnum.HEALTH)
-        # Initialize the health status based on the provided initial health status
+        # Initialize the health status based
+        # on the provided initial health status
         self._monitor_health_status: HealthStatusEnum = initial_health_status
 
         # Register the monitored resource with the monitored service
@@ -95,17 +96,20 @@ class AbstractReadinessMonitored(AbstractMonitored):
         AbstractMonitored.__init__(self=self)
         # Add the readiness monitor type to the monitor type subjects
         self._monitor_type_subjects.add(MonitorTypeEnum.READINESS)
-        # Initialize the readiness status based on the provided initial readiness status
-        self._monitor_readiness_status: ReadinessStatusEnum = initial_readiness_status
+        # Initialize the readiness status based on the provided initial
+        # readiness status
+        self._monitor_readiness_status: ReadinessStatusEnum = (
+            initial_readiness_status
+        )
 
         # Register the monitored resource with the monitored service
-        self._monitor_readiness_subject: reactivex.Subject[ReadinessStatusEnum] = (
-            self._monitor_service.register_monitored_resource(
-                monitor_type=MonitorTypeEnum.READINESS,
-                resource_type=resource_type,
-                identifier=identifier,
-                initial_status=initial_readiness_status,
-            )
+        self._monitor_readiness_subject: reactivex.Subject[
+            ReadinessStatusEnum
+        ] = self._monitor_service.register_monitored_resource(
+            monitor_type=MonitorTypeEnum.READINESS,
+            resource_type=resource_type,
+            identifier=identifier,
+            initial_status=initial_readiness_status,
         )
 
     def change_readiness_status(

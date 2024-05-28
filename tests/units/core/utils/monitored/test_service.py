@@ -119,7 +119,9 @@ class TestMonitoredServiceValidationMethods:
             "identifier": "test",
         }
 
-        _subject = _monitor_service.register_monitored_resource(**_monitor_resource)
+        _subject = _monitor_service.register_monitored_resource(
+            **_monitor_resource
+        )
 
         assert isinstance(_subject, reactivex.Subject)
 

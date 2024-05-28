@@ -25,7 +25,8 @@ def load(application: "AbstractApplication") -> Callable[[Binder], None] | None:
     This method is called when the plugin is loaded.
     """
 
-    # Define the configuration method base on the environment, and environment variables
+    # Define the configuration method base on the environment,
+    # and environment variables
 
     configure_logging(
         json_logs=application.get_configuration().log_use_json,

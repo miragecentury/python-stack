@@ -15,7 +15,8 @@ class Environment(StrEnum):
 
     Testing: The application is running in a testing environment.
 
-    Staging: The application is running in a staging environment before production.
+    Staging: The application is running in a staging environment
+    before production.
 
     Production: The application is running in a production environment.
     """

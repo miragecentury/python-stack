@@ -6,7 +6,6 @@ import os
 import re
 from pathlib import Path
 
-from fastapi.background import P
 from yaml import SafeLoader
 
 
@@ -68,17 +67,17 @@ class YamlFileReader:
             KeyError: If the base key is not found in the YAML file.
         """
         if self._yaml_base_key is not None:
-            _keys: list[str] = self._yaml_base_key.split(".")
-            while len(_keys) != 0:
+            keys: list[str] = self._yaml_base_key.split(".")
+            while len(keys) != 0:
                 try:
                     # /!\ pop don't accept index as keyword argument
-                    _key = _keys.pop(0)
-                    yaml_data = yaml_data[_key]
-                except KeyError as _e:
+                    key: str = keys.pop(0)
+                    yaml_data = yaml_data[key]
+                except KeyError as exception:
                     raise KeyError(
-                        f"Base key {_key} not found in YAML file"
+                        f"Base key {key} not found in YAML file"
                         + " from {self._yaml_base_key}"
-                    ) from _e
+                    ) from exception
         return yaml_data
 
     def _read_yaml_file(self, file_path: Path) -> dict:
@@ -98,14 +97,16 @@ class YamlFileReader:
             raise FileNotFoundError(f"File not found: {file_path}")
 
         with open(file_path, "r", encoding="UTF-8") as file:
-            _loader = SafeLoader(file)
+            loader = SafeLoader(file)
 
             try:
-                _yaml_data = _loader.get_data()
-            except Exception as _e:
-                raise ValueError(f"Error reading YAML file: {file_path}") from _e
+                yaml_data = loader.get_data()
+            except Exception as exception:
+                raise ValueError(
+                    f"Error reading YAML file: {file_path}"
+                ) from exception
 
-            return _yaml_data
+            return yaml_data
 
     def _inject_environment_variables(
         self, yaml_data: dict | str | list
@@ -115,28 +116,29 @@ class YamlFileReader:
         Args:
             yaml_data (dict | str | list): The data from the YAML file.
         Returns:
-            dict: The data from the YAML file with environment variables injected.
+            dict: The data from the YAML file
+            with environment variables injected.
         """
         if isinstance(yaml_data, dict):
-            for _key, _value in yaml_data.items():
-                yaml_data[_key] = self._inject_environment_variables(_value)
+            for key, value in yaml_data.items():
+                yaml_data[key] = self._inject_environment_variables(value)
         elif isinstance(yaml_data, list):
             yaml_data = [
-                self._inject_environment_variables(_value) for _value in yaml_data
+                self._inject_environment_variables(value) for value in yaml_data
             ]
         elif isinstance(yaml_data, str):
             while True:
-                _match = self.re.search(yaml_data)
-                if _match is None:
+                match = self.re.search(yaml_data)
+                if match is None:
                     break
-                _env_key = _match.group(1)
-                _env_default = _match.group(2)
-                _env_value = os.getenv(_env_key, _env_default)
-                yaml_data = yaml_data.replace(_match.group(0), _env_value)
+                env_key = match.group(1)
+                env_default = match.group(2)
+                env_value = os.getenv(env_key, env_default)
+                yaml_data = yaml_data.replace(match.group(0), env_value)
 
         return yaml_data
 
-    def read(self) -> dict | str | list:
+    def read(self) -> dict:
         """
         Reads the YAML file and converts it to a Pydantic model
         with or without environment injection.
@@ -147,18 +149,18 @@ class YamlFileReader:
 
         # Read the YAML file and filter the data with the base key
         try:
-            _yaml_data: dict = self._filter_data_with_base_key(
+            yaml_data: dict = self._filter_data_with_base_key(
                 self._read_yaml_file(file_path=self._file_path)
             )
-        except (FileNotFoundError, ValueError, KeyError) as _e:
+        except (FileNotFoundError, ValueError, KeyError) as exception:
             raise UnableToReadYamlFileError(
-                file_path=self._file_path, message=str(_e)
-            ) from _e
+                file_path=self._file_path, message=str(exception)
+            ) from exception
 
         if self._use_environment_injection:
-            _yaml_data_with_env_injected: dict | str | list = (
-                self._inject_environment_variables(_yaml_data)
+            yaml_data_with_env_injected: dict | str | list = (
+                self._inject_environment_variables(yaml_data)
             )
-            return _yaml_data_with_env_injected
+            return dict(yaml_data_with_env_injected)
         else:
-            return _yaml_data
+            return dict(yaml_data)

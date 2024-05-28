@@ -21,4 +21,6 @@ class TestApiMonitoredReadinessSimple(TestCaseAbstract):
             with TestClient(_application) as _client:
                 response = _client.get("/api/v1/monitored/readiness")
                 assert response.status_code == 200
-                assert response.json() == {"readiness": ReadinessStatusEnum.READY.value}
+                assert response.json() == {
+                    "readiness": ReadinessStatusEnum.READY.value
+                }

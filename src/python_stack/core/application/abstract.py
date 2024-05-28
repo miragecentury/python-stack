@@ -95,7 +95,7 @@ class AbstractApplication(
         self,
         fastapi_app: fastapi.FastAPI | None = None,
         inject_allow_override: bool = False,
-        inject_override_binder: Callable[[inject.Binder], None] = None,
+        inject_override_binder: Callable[[inject.Binder], None] | None = None,
     ) -> None:
         """
         Initializes the Application
@@ -122,7 +122,7 @@ class AbstractApplication(
         self.load(priority=PluginPriorityEnum.DELAYED)
 
         # Initialize the dependency injection container
-        self._inject_override_binder: Callable[[inject.Binder], None] = (
+        self._inject_override_binder: Callable[[inject.Binder], None] | None = (
             inject_override_binder
         )
         self._injector: inject.Injector = self.__init_inject__(

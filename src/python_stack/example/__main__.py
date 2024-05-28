@@ -14,11 +14,11 @@ async def serve() -> None:
     Serve the Python Stack Example Application.
     """
     # Create a new Application instance
-    _app = Application()
+    app = Application()
     # Setup Uvicorn Server
-    _server = Server(config=_app.build_uvicorn_config())
+    server = Server(config=app.build_uvicorn_config())
     # Run the server
-    await _server.serve()
+    await server.serve()
 
 
 def main() -> None:

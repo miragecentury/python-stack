@@ -3,6 +3,7 @@ Abstract class for a basic application.
 """
 
 from abc import ABC
+from pathlib import Path
 from typing import Protocol
 
 from python_stack.core.application.config import AbstractApplicationConfig
@@ -62,9 +63,13 @@ class AbstractBaseApplication(ABC):
             # pylint: disable=unnecessary-lambda
             constructor_callable=lambda: AbstractApplicationConfig(
                 **YamlFileReader(
-                    file_path=get_path_file_in_package(
-                        filename="application.yaml",
-                        package=self.get_application_package(),
+                    file_path=Path(
+                        str(
+                            get_path_file_in_package(
+                                filename="application.yaml",
+                                package=self.get_application_package(),
+                            )
+                        )
                     ),
                     yaml_base_key="application",
                     use_environment_injection=True,
@@ -90,7 +95,7 @@ class AbstractBaseApplication(ABC):
         Returns:
             str: The application package.
         """
-        return self.APPLICATION_PACKAGE
+        return str(self.APPLICATION_PACKAGE)
 
     def get_configuration(self) -> AbstractApplicationConfig:
         """

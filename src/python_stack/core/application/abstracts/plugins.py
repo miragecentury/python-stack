@@ -76,11 +76,14 @@ class AbstractPluginsApplication(ABC):
             by the application.
 
         Raises:
-            TypeError: If a plugin in the list is not an instance of PluginProtocol.
+            TypeError: If a plugin in the list is not an
+            instance of PluginProtocol.
         """
         for plugin in plugins:
             if not isinstance(plugin, PluginProtocol):
-                raise TypeError(f"Plugin {plugin} is not an instance of PluginProtocol")
+                raise TypeError(
+                    f"Plugin {plugin} is not an instance of PluginProtocol"
+                )
 
     def _order_plugins_by_priority(
         self, plugins: list[PluginProtocol]
@@ -93,11 +96,11 @@ class AbstractPluginsApplication(ABC):
             by the application.
 
         Returns:
-            dict[PluginPriorityEnum, list[PluginProtocol]]: A dictionary with the
-            plugins ordered by priority.
+            dict[PluginPriorityEnum, list[PluginProtocol]]: A dictionary
+            with the plugins ordered by priority.
         """
-        ordered_plugins: dict[PluginPriorityEnum, list[PluginProtocol]] = defaultdict(
-            list
+        ordered_plugins: dict[PluginPriorityEnum, list[PluginProtocol]] = (
+            defaultdict(list)
         )
 
         for plugin in plugins:
@@ -114,7 +117,8 @@ class AbstractPluginsApplication(ABC):
             by the application.
 
         Raises:
-            TypeError: If a plugin in the set is not an instance of PluginProtocol.
+            TypeError: If a plugin in the set is not
+            an instance of PluginProtocol.
         """
 
         if plugins is not None:
@@ -132,9 +136,9 @@ class AbstractPluginsApplication(ABC):
         # Validate the plugins (raises TypeError if invalid)
         self._validate_plugins(self._plugins)
         # Order the plugins by priority
-        self._plugins_ordered: dict[PluginPriorityEnum, list[PluginProtocol]] = (
-            self._order_plugins_by_priority(self._plugins)
-        )
+        self._plugins_ordered: dict[
+            PluginPriorityEnum, list[PluginProtocol]
+        ] = self._order_plugins_by_priority(self._plugins)
         # Initialize the ordered inject configure dictionary for later use
         self._plugins_ordered_inject_configure: dict[
             PluginPriorityEnum, list[Callable[[inject.Binder], None]]
@@ -148,7 +152,9 @@ class AbstractPluginsApplication(ABC):
             priority (PluginPriorityEnum): The priority of the plugins to load.
         """
         for plugin in self._plugins_ordered[priority]:
-            self._plugins_ordered_inject_configure[priority].append(plugin.load(self))
+            self._plugins_ordered_inject_configure[priority].append(
+                plugin.load(self)
+            )
 
     def _configure_inject(self, binder: inject.Binder) -> None:
         """

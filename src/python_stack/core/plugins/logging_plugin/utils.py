@@ -32,8 +32,9 @@ def drop_color_message_key(
     _, __, event_dict: EventDict  # pylint: disable=invalid-name
 ) -> EventDict:
     """
-    Uvicorn logs the message a second time in the extra `color_message`, but we don't
-    need it. This processor drops the key from the event dict if it exists.
+    Uvicorn logs the message a second time in the extra `color_message`,
+    but we don't need it. This processor drops the key from
+    the event dict if it exists.
     """
     event_dict.pop("color_message", None)
     return event_dict
