@@ -38,7 +38,8 @@ class TestCaseAbstract(ABC):
 
     @contextmanager
     def build_application(
-        self, inject_override_binder: Callable[[inject.Binder], None] = None
+        self,
+        inject_override_binder: Callable[[inject.Binder], None] = None,
     ) -> Generator[AbstractApplication, None, None]:
         """
         Provides an instance of the AbstractApplication class.
