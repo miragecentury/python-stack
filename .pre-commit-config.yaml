@@ -7,9 +7,22 @@ default_stages:
 repos:
   - repo: local
     hooks:
+    - id: poetry lock and update
+      name: poetry lock and update
+      entry: "poetry"
+      args: ["update", "--with=test", "--sync"]
+      language: system
+      types: [python]
+      pass_filenames: false
+      always_run: true
     - id: pytest
       name: pytest
-      entry: ./.venv/bin/pytest tests/units
+      entry: "./.venv/bin/pytest"
+      args:
+        - "tests/units"
+        - "--cov=src"
+        - "--cov-report=lcov:build/coverage.lcov"
+        - "--junitxml=build/junit.xml"
       language: system
       types: [python]
       pass_filenames: false
@@ -44,7 +57,7 @@ repos:
         # Not that problematic to run in parallel see Pre-commit
         # integration in the doc for details
         # require_serial: true
-        args: ["-rn", "-sn", "--rcfile=pylintrc", "--fail-on=I"]
+        args: ["-rn", "-sn", "--rcfile=pylintrc", "--fail-on=I", "-j=4"]
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.2
     hooks:
