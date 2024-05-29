@@ -40,7 +40,7 @@ class TestYamlFileReader:
 
                 mock_exists.assert_called_once_with("file_path")
                 mock_open_mock.assert_called_once_with(
-                    "file_path", "r", encoding="UTF-8"
+                    file="file_path", mode="r", encoding="UTF-8"
                 )
 
                 assert data == {yaml_test_key: yaml_test_value}
@@ -70,7 +70,7 @@ class TestYamlFileReader:
 
                 mock_exists.assert_called_once_with("file_path")
                 mock_open_mock.assert_called_once_with(
-                    "file_path", "r", encoding="UTF-8"
+                    file="file_path", mode="r", encoding="UTF-8"
                 )
 
                 assert data == {yaml_test_key: yaml_test_value}
@@ -101,7 +101,7 @@ class TestYamlFileReader:
 
                 mock_exists.assert_called_once_with("file_path")
                 mock_open_mock.assert_called_once_with(
-                    "file_path", "r", encoding="UTF-8"
+                    file="file_path", mode="r", encoding="UTF-8"
                 )
 
                 assert data == {yaml_test_key: yaml_test_value}
@@ -130,7 +130,7 @@ class TestYamlFileReader:
                     yaml_reader.read()
                 mock_exists.assert_called_once_with("file_path")
                 mock_open_mock.assert_called_once_with(
-                    "file_path", "r", encoding="UTF-8"
+                    file="file_path", mode="r", encoding="UTF-8"
                 )
 
     def test_yaml_read_with_simple_env_value_to_inject(self):
@@ -157,7 +157,7 @@ class TestYamlFileReader:
 
                     mock_exists.assert_called_once_with("file_path")
                     mock_open_mock.assert_called_once_with(
-                        "file_path", "r", encoding="UTF-8"
+                        file="file_path", mode="r", encoding="UTF-8"
                     )
 
                     assert data == {yaml_test_key: yaml_test_value}
@@ -187,7 +187,7 @@ class TestYamlFileReader:
 
                 mock_exists.assert_called_once_with("file_path")
                 mock_open_mock.assert_called_once_with(
-                    "file_path", "r", encoding="UTF-8"
+                    file="file_path", mode="r", encoding="UTF-8"
                 )
 
                 assert data == {yaml_test_key: yaml_test_value}
@@ -242,7 +242,7 @@ class TestYamlFileReader:
 
                     mock_exists.assert_called_once_with("file_path")
                     mock_open_mock.assert_called_once_with(
-                        "file_path", "r", encoding="UTF-8"
+                        file="file_path", mode="r", encoding="UTF-8"
                     )
 
                     assert data == expected_result

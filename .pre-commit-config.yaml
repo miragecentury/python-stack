@@ -2,7 +2,18 @@ default_language_version:
   python: python3.11
 default_stages:
   - "pre-push"
+  - "commit"
+  - "manual"
 repos:
+  - repo: local
+    hooks:
+    - id: pytest
+      name: pytest
+      entry: ./.venv/bin/pytest tests/units
+      language: system
+      types: [python]
+      pass_filenames: false
+      always_run: true
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'v1.10.0'  # Use the sha / tag you want to point at
     hooks:
@@ -37,4 +48,4 @@ repos:
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.2
     hooks:
-    -   id: pyupgrade
+    - id: pyupgrade
