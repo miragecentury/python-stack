@@ -2,7 +2,6 @@
 Provides the OpenTelemetry Manager Factory.
 """
 
-from pathlib import Path
 from typing import Any, Callable, Tuple
 
 import fastapi
@@ -160,12 +159,8 @@ class OpenTelemetryManagerFactory:
 
         # Read the OpenTelemetry Configuration from the YAML file
         yaml_reader = YamlFileReader(
-            file_path=Path(
-                str(
-                    get_path_file_in_package(
-                        YAML_FILE_NAME, application.get_application_package()
-                    )
-                )
+            file_path=get_path_file_in_package(
+                YAML_FILE_NAME, application.get_application_package()
             ),
             yaml_base_key="opentelemetry",
             use_environment_injection=True,

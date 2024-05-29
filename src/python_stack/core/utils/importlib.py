@@ -1,10 +1,10 @@
 """ Provide importlib functions """
 
-from importlib.abc import Traversable
 from importlib.resources import files
+from pathlib import Path
 
 
-def get_path_file_in_package(filename: str, package: str) -> Traversable:
+def get_path_file_in_package(filename: str, package: str) -> Path:
     """
     Return Absolute Path of file in package
 
@@ -21,7 +21,7 @@ def get_path_file_in_package(filename: str, package: str) -> Traversable:
 
     """
     try:
-        path: Traversable = files(package).joinpath(filename)
+        path: Path = Path(str(files(package).joinpath(filename)))
     except FileNotFoundError as exception:
         raise FileNotFoundError(
             f"File {filename} not found in package {package}"
