@@ -97,7 +97,7 @@ class YamlFileReader:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
 
-        with open(file_path, "r", encoding="UTF-8") as file:
+        with open(file_path, encoding="UTF-8") as file:
             loader = SafeLoader(file)
 
             try:

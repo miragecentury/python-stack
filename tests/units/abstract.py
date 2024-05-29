@@ -39,7 +39,7 @@ class TestCaseAbstract(ABC):
     @contextmanager
     def build_application(
         self,
-        inject_override_binder: Callable[[inject.Binder], None] = None,
+        inject_override_binder: Callable[[inject.Binder], None] | None = None,
     ) -> Generator[AbstractApplication, None, None]:
         """
         Provides an instance of the AbstractApplication class.
@@ -57,8 +57,8 @@ class TestCaseAbstract(ABC):
 
         def inject_override_binder_test(binder: inject.Binder) -> None:
             """
-            Overrides the parent method to configure the dependency injection container for
-            the Application "Test".
+            Overrides the parent method to configure the dependency
+            injection container for the Application "Test".
             """
             binder.bind(
                 cls=OpenTelemetryConfiguration,
@@ -70,18 +70,20 @@ class TestCaseAbstract(ABC):
             if inject_override_binder is not None:
                 binder.install(inject_override_binder)
 
-        # Clear the inject configuration and configure the inject_override_binder_test.
+        # Clear the inject configuration and configure
+        # the inject_override_binder_test.
         # This is done to allow the test to provide the injected value
         # before the application re-configure inject.
         inject.configure(inject_override_binder_test, clear=True)
 
-        # use_mode_test=True is used to allow the test to override injected value.
-        _application = Application(
+        # use_mode_test=True is used to allow the test
+        # to override injected value.
+        application = Application(
             inject_allow_override=True,
             inject_override_binder=inject_override_binder_test,
         )
 
-        yield _application
+        yield application
 
         # Clear the inject configuration to avoid conflicts with other tests.
         inject.clear()

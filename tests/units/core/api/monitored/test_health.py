@@ -33,21 +33,21 @@ class TestApiMonitoredHealthSimple(TestCaseAbstract):
         Provide the test case for the health endpoint.
         """
 
-        _monitored_service_mock: MonitoredService = Mock()
+        monitored_service_mock: MonitoredService = Mock()
 
         def inject_override_binder_test(binder: Binder):
             """
-            Overrides the parent method to configure the dependency injection container for
-            the Application "Test".
+            Overrides the parent method to configure
+            the dependency injection container for the Application "Test".
             """
-            binder.bind(cls=MonitoredService, instance=_monitored_service_mock)
+            binder.bind(cls=MonitoredService, instance=monitored_service_mock)
 
-        _monitored_service_mock.get_health_status.return_value = health_status
+        monitored_service_mock.get_health_status.return_value = health_status
 
         with self.build_application(
             inject_override_binder=inject_override_binder_test
-        ) as _application:
-            with TestClient(_application) as _client:
-                response = _client.get("/api/v1/monitored/health")
+        ) as application:
+            with TestClient(application) as client:
+                response = client.get("/api/v1/monitored/health")
                 assert response.status_code == expected_status_code
                 assert response.json() == {"health": health_status.value}

@@ -13,7 +13,7 @@ services:
       - mongodb-data:/data/db
     networks:
       - devcontainer
- 
+
 networks:
   devcontainer:
     driver: bridge

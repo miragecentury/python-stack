@@ -1,5 +1,5 @@
 """
-Provides a service for registering and managing monitored resources 
+Provides a service for registering and managing monitored resources
 to expose health and readiness status through api endpoints.
 """
 

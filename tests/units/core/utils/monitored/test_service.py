@@ -36,7 +36,8 @@ class TestMonitoredServiceValidationMethods:
         status: HealthStatusEnum | ReadinessStatusEnum,
     ):
         """
-        Validate the association of the monitor type and status for health status.
+        Validate the association of the monitor type and status
+        for health status.
         No Raise is expected.
         """
 
@@ -62,7 +63,8 @@ class TestMonitoredServiceValidationMethods:
         status: HealthStatusEnum | ReadinessStatusEnum,
     ):
         """
-        Validate the association of the monitor type and status for invalid status.
+        Validate the association of the monitor type and status
+        for invalid status.
         Raise is expected.
         """
 
@@ -86,7 +88,8 @@ class TestMonitoredServiceValidationMethods:
         monitor_type: str,
     ):
         """
-        Validate the association of the monitor type and status for invalid monitor type.
+        Validate the association of the monitor type and status
+        for invalid monitor type.
         Raise is expected.
         """
 
@@ -97,8 +100,8 @@ class TestMonitoredServiceValidationMethods:
             )
 
         with pytest.raises(ValueError):
-            _monitored_service = MonitoredService()
-            _monitored_service.register_monitored_resource(
+            monitored_service = MonitoredService()
+            monitored_service.register_monitored_resource(
                 monitor_type=monitor_type,
                 initial_status=HealthStatusEnum.HEALTHY,
                 resource_type=MonitorResourceTypeEnum.APPLICATION,
@@ -110,20 +113,20 @@ class TestMonitoredServiceValidationMethods:
         Validate the not duplicate registration of the monitored resource.
         """
 
-        _monitor_service = MonitoredService()
+        monitor_service = MonitoredService()
 
-        _monitor_resource = {
+        monitor_resource = {
             "monitor_type": MonitorTypeEnum.HEALTH,
             "initial_status": HealthStatusEnum.HEALTHY,
             "resource_type": MonitorResourceTypeEnum.APPLICATION,
             "identifier": "test",
         }
 
-        _subject = _monitor_service.register_monitored_resource(
-            **_monitor_resource
+        subject = monitor_service.register_monitored_resource(
+            **monitor_resource
         )
 
-        assert isinstance(_subject, reactivex.Subject)
+        assert isinstance(subject, reactivex.Subject)
 
         with pytest.raises(ValueError):
-            _monitor_service.register_monitored_resource(**_monitor_resource)
+            monitor_service.register_monitored_resource(**monitor_resource)

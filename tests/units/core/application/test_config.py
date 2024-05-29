@@ -17,11 +17,11 @@ class TestAbstractApplicationConfigServer:
         """
         Test the AbstractApplicationConfigServer.
         """
-        _host = "localhost"
-        _port = 8080
-        _server = AbstractApplicationConfigServer(host=_host, port=_port)
-        assert _server.host == _host
-        assert _server.port == _port
+        host = "localhost"
+        port = 8080
+        server = AbstractApplicationConfigServer(host=host, port=port)
+        assert server.host == host
+        assert server.port == port
 
 
 class TestAbstractApplicationConfig:
@@ -33,17 +33,17 @@ class TestAbstractApplicationConfig:
         """
         Test the AbstractApplicationConfig.
         """
-        _server = AbstractApplicationConfigServer(host="localhost", port=8080)
-        _environment = "DEVELOPMENT"
-        _log_level = 10
-        _log_use_json = True
-        _config = AbstractApplicationConfig(
-            server=_server,
-            environment=_environment,
-            log_level=_log_level,
-            log_use_json=_log_use_json,
+        server = AbstractApplicationConfigServer(host="localhost", port=8080)
+        environment = "DEVELOPMENT"
+        log_level = 10
+        log_use_json = True
+        config = AbstractApplicationConfig(
+            server=server,
+            environment=environment,
+            log_level=log_level,
+            log_use_json=log_use_json,
         )
-        assert _config.server == _server
-        assert str(_config.environment).upper() == _environment
-        assert _config.log_level == _log_level
-        assert _config.log_use_json == _log_use_json
+        assert config.server == server
+        assert str(config.environment).upper() == environment
+        assert config.log_level == log_level
+        assert config.log_use_json == log_use_json

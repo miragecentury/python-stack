@@ -3,6 +3,7 @@ Test cases for HealthStatusServiceResolver
 """
 
 import pytest
+
 from python_stack.core.utils.monitored.service import (
     HealthStatusEnum,
     HealthStatusServiceResolver,
@@ -14,6 +15,9 @@ from python_stack.core.utils.monitored.service import (
 
 
 class TestHealthStatusServiceResolver:
+    """
+    Test cases for HealthStatusServiceResolver
+    """
 
     @pytest.mark.parametrize(
         "monitored_resources, expected_health_status",
@@ -101,15 +105,15 @@ class TestHealthStatusServiceResolver:
         Test HealthStatusServiceResolver.resolve
         Resulve the health status of the monitored resources
         """
-        _resolver = HealthStatusServiceResolver(monitored_resources)
-        assert _resolver.resolve() == expected_health_status
+        resolver = HealthStatusServiceResolver(monitored_resources)
+        assert resolver.resolve() == expected_health_status
 
     def test_resolver_ignore_not_health_monitored_resources(self):
         """
         Test HealthStatusServiceResolver.resolve
         Ignore monitored resources that are not of type MonitorTypeEnum.HEALTH
         """
-        _monitored_resources = {
+        monitored_resources = {
             "resource_1": MonitoredResource(
                 types={MonitorTypeEnum.READINESS},
                 resource_type=MonitorResourceTypeEnum.DATABASE,
@@ -130,5 +134,5 @@ class TestHealthStatusServiceResolver:
             ),
         }
 
-        _resolver = HealthStatusServiceResolver(_monitored_resources)
-        assert _resolver.resolve() == HealthStatusEnum.HEALTHY
+        resolver = HealthStatusServiceResolver(monitored_resources)
+        assert resolver.resolve() == HealthStatusEnum.HEALTHY
