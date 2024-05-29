@@ -5,6 +5,7 @@ Provides a class for reading YAML files and converting them to Pydantic models.
 import os
 import re
 from pathlib import Path
+from typing import cast
 
 from yaml import SafeLoader
 
@@ -158,8 +159,8 @@ class YamlFileReader:
             ) from exception
 
         if self._use_environment_injection:
-            yaml_data_with_env_injected: dict | str | list = (
-                self._inject_environment_variables(yaml_data)
+            yaml_data_with_env_injected: dict = cast(
+                dict, self._inject_environment_variables(yaml_data)
             )
             return dict(yaml_data_with_env_injected)
         else:

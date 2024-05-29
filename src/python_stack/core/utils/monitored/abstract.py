@@ -3,6 +3,7 @@ Provides the abstract classes for monitored classes.
 """
 
 from abc import ABC
+from typing import cast
 
 import inject
 import reactivex
@@ -59,11 +60,14 @@ class AbstractHealthMonitored(AbstractMonitored):
 
         # Register the monitored resource with the monitored service
         self._monitor_health_subject: reactivex.Subject[HealthStatusEnum] = (
-            self._monitor_service.register_monitored_resource(
-                monitor_type=MonitorTypeEnum.HEALTH,
-                resource_type=resource_type,
-                identifier=identifier,
-                initial_status=initial_health_status,
+            cast(
+                reactivex.Subject[HealthStatusEnum],
+                self._monitor_service.register_monitored_resource(
+                    monitor_type=MonitorTypeEnum.HEALTH,
+                    resource_type=resource_type,
+                    identifier=identifier,
+                    initial_status=initial_health_status,
+                ),
             )
         )
 
@@ -105,11 +109,14 @@ class AbstractReadinessMonitored(AbstractMonitored):
         # Register the monitored resource with the monitored service
         self._monitor_readiness_subject: reactivex.Subject[
             ReadinessStatusEnum
-        ] = self._monitor_service.register_monitored_resource(
-            monitor_type=MonitorTypeEnum.READINESS,
-            resource_type=resource_type,
-            identifier=identifier,
-            initial_status=initial_readiness_status,
+        ] = cast(
+            reactivex.Subject[ReadinessStatusEnum],
+            self._monitor_service.register_monitored_resource(
+                monitor_type=MonitorTypeEnum.READINESS,
+                resource_type=resource_type,
+                identifier=identifier,
+                initial_status=initial_readiness_status,
+            ),
         )
 
     def change_readiness_status(

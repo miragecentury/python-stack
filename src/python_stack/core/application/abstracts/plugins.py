@@ -152,9 +152,11 @@ class AbstractPluginsApplication(ABC):
             priority (PluginPriorityEnum): The priority of the plugins to load.
         """
         for plugin in self._plugins_ordered[priority]:
-            self._plugins_ordered_inject_configure[priority].append(
-                plugin.load(self)
-            )
+            calleable = plugin.load(self)
+            if calleable is not None:
+                self._plugins_ordered_inject_configure[priority].append(
+                    calleable
+                )
 
     def _configure_inject(self, binder: inject.Binder) -> None:
         """

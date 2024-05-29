@@ -3,7 +3,7 @@ Provides a service for registering and managing monitored resources
 to expose health and readiness status through api endpoints.
 """
 
-from typing import Dict
+from typing import Dict, cast
 
 import reactivex
 
@@ -213,11 +213,13 @@ class MonitoredService:
         # Update the status based on the monitor type
         match status_updated.monitor_type:
             case MonitorTypeEnum.HEALTH:
+                assert isinstance(status_updated.status, HealthStatusEnum)
                 self._monitored_resources[
                     status_updated.identifier
                 ].health_status = status_updated.status
                 self._calculate_health_status()
             case MonitorTypeEnum.READINESS:
+                assert isinstance(status_updated.status, ReadinessStatusEnum)
                 self._monitored_resources[
                     status_updated.identifier
                 ].readiness_status = status_updated.status
@@ -227,7 +229,10 @@ class MonitoredService:
         self,
         identifier: str,
         monitor_type: MonitorTypeEnum,
-    ) -> reactivex.Subject[MonitoredStatusUpdate]:
+    ) -> (
+        reactivex.Subject[HealthStatusEnum]
+        | reactivex.Subject[ReadinessStatusEnum]
+    ):
         """
         Create and subscribe to a subject for the monitored resource
         with the given identifier and monitor type to simplify
@@ -244,7 +249,7 @@ class MonitoredService:
 
         """
 
-        subject = reactivex.Subject[MonitoredStatusUpdate]()
+        subject = reactivex.Subject()  # type: ignore
         subject.subscribe(
             lambda status: self._handle_status_update(
                 MonitoredStatusUpdate(
@@ -263,7 +268,10 @@ class MonitoredService:
         resource_type: MonitorResourceTypeEnum,
         identifier: str,
         initial_status: HealthStatusEnum | ReadinessStatusEnum,
-    ) -> reactivex.Subject[HealthStatusEnum | ReadinessStatusEnum]:
+    ) -> (
+        reactivex.Subject[ReadinessStatusEnum]
+        | reactivex.Subject[HealthStatusEnum]
+    ):
         """
         Register a monitored resource with
         the given monitor type, resource type, identifier, and initial status.
@@ -329,26 +337,33 @@ class MonitoredService:
         resource.types.add(monitor_type)
 
         # Register the monitored resource subject
-        subject: reactivex.Subject[MonitoredStatusUpdate] = (
-            self._register_monitored_resource_subject(
-                identifier=identifier,
-                monitor_type=monitor_type,
-            )
+        subject: (
+            reactivex.Subject[ReadinessStatusEnum]
+            | reactivex.Subject[HealthStatusEnum]
+        ) = self._register_monitored_resource_subject(
+            identifier=identifier,
+            monitor_type=monitor_type,
         )
 
         # Set the initial status based on the monitor type
         match monitor_type:
             case MonitorTypeEnum.HEALTH:
-                resource.health_status = initial_status
-                resource.health_subject = subject
+                resource.health_status = cast(HealthStatusEnum, initial_status)
+                resource.health_subject = cast(
+                    reactivex.Subject[HealthStatusEnum], subject
+                )
             case MonitorTypeEnum.READINESS:
-                resource.readiness_status = initial_status
-                resource.readiness_subject = subject
+                resource.readiness_status = cast(
+                    ReadinessStatusEnum, initial_status
+                )
+                resource.readiness_subject = cast(
+                    reactivex.Subject[ReadinessStatusEnum], subject
+                )
 
         # Update the monitored resources
         self._monitored_resources[identifier] = resource
 
         # Emit the initial status
-        subject.on_next(initial_status)
+        subject.on_next(initial_status)  # type: ignore
 
         return subject
