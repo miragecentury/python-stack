@@ -28,8 +28,9 @@ structlog = "^24.1.0"
 [tool.poetry.group.test.dependencies]
 mypy = "^1.10.0"
 types-pyyaml = "^6.0.12.20240311"
-pylint = "^3.2.2"
+pylint = {version="^3.2.2", extras=["spelling"]}
 black = "^24.4.2"
+pre-commit = "^3.7.1"
 
 [tool.poetry.extras]
 
@@ -54,6 +55,10 @@ filterwarnings = [
     "ignore::DeprecationWarning:opentelemetry",
 ]
 
+[tool.isort]
+profile = "black"
+line_length = 80
+
 [tool.black]
 line-length = 80
 
@@ -62,6 +67,8 @@ target-version = ['py311']
 [tool.mypy]
 python_version = "3.11"
 warn_unused_configs = true
+packages = "python_stack"
 
 [tool.pylint]
 fail-under = 9.5
+jobs = 4

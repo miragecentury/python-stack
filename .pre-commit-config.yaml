@@ -1,0 +1,40 @@
+default_language_version:
+  python: python3.11
+default_stages:
+  - "pre-push"
+repos:
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.10.0'  # Use the sha / tag you want to point at
+    hooks:
+      - id: mypy
+        additional_dependencies: ["types-PyYAML"]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+  - repo: https://github.com/pylint-dev/pylint
+    rev: v3.2.2
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        # Not that problematic to run in parallel see Pre-commit
+        # integration in the doc for details
+        # require_serial: true
+        args: ["-rn", "-sn", "--rcfile=pylintrc", "--fail-on=I"]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.2
+    hooks:
+    -   id: pyupgrade
