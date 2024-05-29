@@ -3,8 +3,8 @@ Provide an abstract class for unit tests.
 """
 
 from abc import ABC
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
-from typing import Callable, Generator
 
 import inject
 

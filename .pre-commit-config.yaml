@@ -49,3 +49,4 @@ repos:
     rev: v3.15.2
     hooks:
     - id: pyupgrade
+      args: ["--py311-plus"]

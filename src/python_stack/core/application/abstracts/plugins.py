@@ -5,8 +5,9 @@ Provides an abstract class for creating an application with plugins.
 import importlib
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Callable
 from enum import IntEnum
-from typing import Callable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import inject
 

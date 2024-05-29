@@ -3,7 +3,7 @@ Provides a service for registering and managing monitored resources
 to expose health and readiness status through api endpoints.
 """
 
-from typing import Dict, cast
+from typing import cast
 
 import reactivex
 
@@ -29,7 +29,7 @@ class HealthStatusServiceResolver:
         Initialize the health status service resolver
         with the monitored resources.
         """
-        self._monitored_resources: Dict[str, MonitoredResource] = (
+        self._monitored_resources: dict[str, MonitoredResource] = (
             monitored_resources
         )
 
@@ -65,7 +65,7 @@ class ReadinessStatusServiceResolver:
         Initialize the readiness status service resolver
         with the monitored resources.
         """
-        self._monitored_resources: Dict[str, MonitoredResource] = (
+        self._monitored_resources: dict[str, MonitoredResource] = (
             monitored_resources
         )
 
@@ -97,7 +97,7 @@ class MonitoredService:
     readiness_resolver: ReadinessStatusServiceResolver
 
     def __init__(self) -> None:
-        self._monitored_resources: Dict[str, MonitoredResource]
+        self._monitored_resources: dict[str, MonitoredResource]
         self._monitored_resources = {}
         self._health_status: HealthStatusEnum
         self._health_status = HealthStatusEnum.UNKNOWN

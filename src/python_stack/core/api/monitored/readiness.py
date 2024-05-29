@@ -3,10 +3,10 @@ This module contains the API endpoints for the readiness of the application.
 """
 
 from http import HTTPStatus
+from typing import Annotated
 
 from fastapi import APIRouter, Response
 from pydantic import BaseModel
-from typing_extensions import Annotated
 
 from python_stack.core.api.tags import MONITORING
 from python_stack.core.utils.inject_helper import inject_depends

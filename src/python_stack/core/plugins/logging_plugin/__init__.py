@@ -2,7 +2,8 @@
 This module is the entry point for the logging plugin.
 """
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from inject import Binder
 

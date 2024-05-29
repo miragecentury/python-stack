@@ -2,7 +2,8 @@
 This module contains the code to configure the OpenTelemetry plugin.
 """
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from inject import Binder
 

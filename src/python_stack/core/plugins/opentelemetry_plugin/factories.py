@@ -2,7 +2,8 @@
 Provides the OpenTelemetry Manager Factory.
 """
 
-from typing import Any, Callable, Tuple
+from collections.abc import Callable
+from typing import Any
 
 import fastapi
 import inject
@@ -203,7 +204,7 @@ class OpenTelemetryManagerFactory:
         configuration: OpenTelemetryConfiguration,
         resource: Resource,
         metric_exporter: MetricExporter | None = None,
-    ) -> Tuple[
+    ) -> tuple[
         MetricReader | None, MetricExporter | None, MeterProvider | None
     ]:
         """
@@ -254,7 +255,7 @@ class OpenTelemetryManagerFactory:
         resource: Resource,
         configuration: OpenTelemetryConfiguration,
         span_exporter: SpanExporter | None = None,
-    ) -> Tuple[SpanProcessor | None, SpanExporter | None, TracerProvider]:
+    ) -> tuple[SpanProcessor | None, SpanExporter | None, TracerProvider]:
         """
         Build the Trace Stack.
 

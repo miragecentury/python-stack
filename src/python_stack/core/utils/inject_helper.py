@@ -2,7 +2,8 @@
 Helper functions for FastAPI and Inject library integration.
 """
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import inject
 from fastapi import Depends

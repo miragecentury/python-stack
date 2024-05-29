@@ -2,7 +2,7 @@
 Example Application class for the Python Stack.
 """
 
-from typing import Callable
+from collections.abc import Callable
 
 import inject
 from inject import Binder

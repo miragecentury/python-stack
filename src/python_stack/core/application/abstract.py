@@ -2,7 +2,7 @@
 Package for creating an Application.
 """
 
-from typing import Callable
+from collections.abc import Callable
 
 import fastapi
 import inject
