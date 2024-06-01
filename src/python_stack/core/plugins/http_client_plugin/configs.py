@@ -90,6 +90,11 @@ def build_from_application_config(
     Build the configuration from the application configuration.
     """
 
+    if application.APPLICATION_PACKAGE is None:
+        raise UnableToBuildConfigError(
+            "The application package is not defined."
+        )
+
     base_key = f"{APPLICATION_YAML_CONFIG_BASE_KEY}.{identifier}"
 
     try:
@@ -97,7 +102,9 @@ def build_from_application_config(
             "application.yaml", application.APPLICATION_PACKAGE
         )
     except (FileNotFoundError, ImportError) as exception:
-        raise UnableToBuildConfigError() from exception
+        raise UnableToBuildConfigError(
+            "The application.yaml file is not found."
+        ) from exception
 
     try:
         application_config_dict = YamlFileReader(

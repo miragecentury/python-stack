@@ -29,7 +29,7 @@ class HttpClientResource:
             limits=Limits(
                 max_connections=self._config.limits.max_connections,
                 max_keepalive_connections=(
-                    self._config.limits.max_keepalive_connections,
+                    self._config.limits.max_keepalive_connections
                 ),
                 keepalive_expiry=self._config.limits.keepalive_expiry,
             ),
